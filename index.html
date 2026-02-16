@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>몽글몽글 우리집</title>
+    <title>우리 가족의 공간</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Dongle:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -13,329 +12,309 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* [Theme: Soft Cloud & Cotton Candy] */
+        /* [Design System: Modern Hearth] */
         :root {
-            --bg-color: #FFFDF9; /* 더 밝고 따뜻한 크림색 */
-            --card-bg: rgba(255, 255, 255, 0.85); /* 반투명한 카드 */
-            --primary: #FF9EAA; /* 더 부드러운 핑크 */
-            --primary-soft: #FFF0F3;
-            --text-main: #5D534A; /* 따뜻한 갈색 톤의 텍스트 */
-            --text-sub: #9E948A;
-            --accent-yellow: #FFD966;
+            /* Color Palette */
+            --bg-main: #F9FAFB; /* 아주 연한 회색빛 배경 (눈이 편안함) */
+            --bg-white: #FFFFFF;
+            --text-primary: #1F2937; /* 진한 차콜색 (완전 검정보다 부드러움) */
+            --text-secondary: #6B7280; /* 중간 회색 */
+            --text-tertiary: #9CA3AF; /* 연한 회색 */
             
-            --radius-XL: 32px; /* 더 둥글게 */
+            /* Accent Color: 따뜻하고 세련된 테라코타/코랄 */
+            --accent: #E07A5F; 
+            --accent-light: #FDECE8;
+            --accent-dark: #C05F45;
+
+            /* UI Elements */
+            --border-color: #E5E7EB;
             --radius-L: 24px;
-            --radius-M: 18px;
+            --radius-M: 16px;
+            --radius-S: 12px;
             
-            /* [NEW] 몽글몽글한 그림자: 더 넓고 부드럽게 퍼짐 */
-            --shadow-cloud: 
-                0 15px 40px rgba(255, 158, 170, 0.15), 
-                0 5px 15px rgba(255, 217, 102, 0.1);
-            --shadow-hover: 
-                0 20px 50px rgba(255, 158, 170, 0.25), 
-                0 8px 20px rgba(255, 217, 102, 0.15);
+            /* Shadows: 깊이감 있고 부드럽게 */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
         }
 
+        /* 기본 설정 */
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
         body { 
-            font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-main);
-            min-height: 100vh; overflow-x: hidden;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-main); color: var(--text-primary);
+            min-height: 100vh; overflow-x: hidden; line-height: 1.5;
         }
+        button, select, input, textarea { font-family: inherit; }
 
-        /* [NEW] 배경 솜사탕 애니메이션 (몽글몽글 이펙트 핵심) */
-        .blob-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;
-        }
-        .blob {
-            position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.6;
-            animation: floatBlob 25s infinite alternate ease-in-out;
-        }
-        .blob-1 { top: -20%; left: -10%; width: 70%; height: 70%; background: rgba(255, 158, 170, 0.3); animation-delay: -5s; }
-        .blob-2 { bottom: -30%; right: -20%; width: 80%; height: 80%; background: rgba(255, 217, 102, 0.3); animation-delay: -12s; }
-        .blob-3 { top: 40%; left: 30%; width: 50%; height: 50%; background: rgba(163, 212, 175, 0.25); animation-delay: -2s; }
-        
-        @keyframes floatBlob {
-            0% { transform: translate(0, 0) scale(1) rotate(0deg); border-radius: 50% 50% 50% 50%; }
-            33% { transform: translate(5%, 10%) scale(1.1) rotate(10deg); border-radius: 60% 40% 50% 70%; }
-            66% { transform: translate(-5%, 5%) scale(0.9) rotate(-5deg); border-radius: 50% 60% 70% 40%; }
-            100% { transform: translate(10%, -5%) scale(1.05) rotate(5deg); border-radius: 50% 50% 50% 50%; }
-        }
+        /* 레이아웃 컨테이너 */
+        .app-container { max-width: 640px; margin: 0 auto; padding-bottom: 110px; background: var(--bg-main); min-height: 100vh; }
 
-        /* 레이아웃 */
-        .app-layout { max-width: 600px; margin: 0 auto; padding-bottom: 110px; position: relative; }
-
-        /* 헤더 */
+        /* --- [헤더] --- */
         .header { 
-            padding: 25px; display: flex; justify-content: space-between; align-items: center;
-            /* 헤더도 몽글하게 */
-            background: rgba(255, 253, 249, 0.7); backdrop-filter: blur(15px);
-            border-radius: 0 0 var(--radius-XL) var(--radius-XL);
-            box-shadow: 0 5px 20px rgba(255, 158, 170, 0.1);
-            position: sticky; top: 0; z-index: 50;
+            padding: 24px 24px 16px; display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-main); position: sticky; top: 0; z-index: 50;
         }
-        .logo-sub { font-size: 14px; color: var(--text-sub); font-weight: 500; letter-spacing: 1px; }
-        .logo-txt { font-family: 'Dongle', sans-serif; font-size: 36px; font-weight: 700; color: var(--text-main); line-height: 1.2; }
-        .logo-txt span { color: var(--primary); position: relative; }
-        /* 로고에 작은 포인트 */
-        .logo-txt span::after { content: ''; position: absolute; top: 5px; right: -8px; width: 6px; height: 6px; background: var(--accent-yellow); border-radius: 50%; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }
+        .header-profile { 
+            width: 44px; height: 44px; border-radius: 50%; background: var(--accent-light); 
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            border: 2px solid var(--bg-white); box-shadow: var(--shadow-sm); color: var(--accent); font-size: 20px; transition: 0.3s;
+        }
+        .header-profile img { width: 100%; height: 100%; object-fit: cover; }
 
-        .my-profile { 
-            width: 44px; height: 44px; border-radius: 50%; background: var(--white); 
-            border: 3px solid var(--primary-soft); overflow: hidden; display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-cloud); transition: 0.3s;
+        /* --- [탭 전환 애니메이션] --- */
+        .tab-content { display: none; animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-content.active { display: block; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- [공통 UI 컴포넌트] --- */
+        /* 카드: 깨끗하고 정돈된 느낌 */
+        .card {
+            background: var(--bg-white); border-radius: var(--radius-L); padding: 24px; margin: 0 20px 24px;
+            box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
         }
 
-        /* --- [UI 요소 업데이트: 더 둥글고 부드럽게] --- */
-        .cozy-card {
-            background: var(--card-bg); border-radius: var(--radius-XL); /* 더 둥글게 */
-            padding: 28px; margin: 0 20px 28px 20px;
-            box-shadow: var(--shadow-cloud); /* 몽글한 그림자 적용 */
-            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* 튕기는 듯한 전환 */
+        /* 버튼: 세련되고 견고하게 */
+        .btn-primary {
+            background: var(--accent); color: white; border: none; padding: 14px 24px; border-radius: var(--radius-M);
+            font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
         }
-        .cozy-card:hover { transform: translateY(-5px) scale(1.01); box-shadow: var(--shadow-hover); }
+        .btn-primary:active { background: var(--accent-dark); transform: scale(0.98); }
+        .btn-primary:disabled { background: var(--text-tertiary); cursor: not-allowed; }
+        .btn-icon { padding: 8px; color: var(--text-secondary); background: none; border: none; font-size: 20px; cursor: pointer; border-radius: 50%; transition: 0.2s; }
+        .btn-icon:hover { background: var(--bg-main); color: var(--text-primary); }
 
-        /* 버튼: 젤리 효과 강화 */
-        .btn-jelly {
-            background: var(--primary); color: white; border: none;
-            padding: 14px 28px; border-radius: 50px;
-            font-size: 16px; font-weight: 700; cursor: pointer;
-            box-shadow: 0 8px 20px rgba(255, 158, 170, 0.4);
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* 쫀득한 애니메이션 */
-            display: flex; align-items: center; gap: 8px; justify-content: center;
+        /* 입력창: 부드러운 배경 */
+        .input-field {
+            width: 100%; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-M);
+            padding: 14px 16px; font-size: 16px; color: var(--text-primary); outline: none; transition: 0.2s; resize: none;
         }
-        .btn-jelly:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 25px rgba(255, 158, 170, 0.5); }
-        .btn-jelly:active { transform: scale(0.9); } /* 눌렀을 때 더 많이 작아짐 */
-        .btn-jelly.soft { background: var(--primary-soft); color: var(--primary); box-shadow: none; }
-        .btn-jelly.soft:hover { background: #FFE8EC; box-shadow: 0 5px 15px rgba(255, 158, 170, 0.2); }
+        .input-field::placeholder { color: var(--text-tertiary); }
+        .input-field:focus { border-color: var(--accent); background: var(--bg-white); box-shadow: 0 0 0 3px var(--accent-light); }
 
-        /* 탭 전환 효과 */
-        .tab-section { display: none; animation: softPopUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .tab-section.active { display: block; }
-        @keyframes softPopUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        /* 이미지 박스 (깨짐 방지) */
+        .img-box { width: 100%; background: var(--bg-main); border-radius: var(--radius-M); overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
+        .img-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .img-placeholder { padding: 40px; color: var(--text-tertiary); font-size: 32px; }
 
-        /* [피드] */
-        .writer-select { display: flex; gap: 12px; margin-bottom: 20px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
-        .writer-select::-webkit-scrollbar { display: none; }
-        .radio-hidden { display: none; }
+        /* --- [탭 1: 피드] --- */
+        /* 작성자 선택 칩 */
+        .writer-select-wrap { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding: 4px; scrollbar-width: none; }
+        .writer-select-wrap::-webkit-scrollbar { display: none; }
+        .writer-radio { display: none; }
         .writer-chip {
-            padding: 10px 20px; background: rgba(255,255,255,0.6); border-radius: 30px; border: 1px solid transparent;
-            font-size: 15px; color: var(--text-sub); font-weight: 600; cursor: pointer;
-            transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); white-space: nowrap; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            padding: 10px 20px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 30px;
+            font-size: 15px; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap;
+            display: flex; align-items: center; gap: 8px;
         }
-        .radio-hidden:checked + .writer-chip {
-            background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(255, 158, 170, 0.4); transform: scale(1.08); border-color: transparent;
-        }
-        .writer-chip-img { width: 24px; height: 24px; border-radius: 50%; overflow: hidden; background: #fff; border: 2px solid #fff; }
+        .writer-avatar-small { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-light); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--accent); }
+        .writer-radio:checked + .writer-chip { background: var(--accent); color: white; border-color: var(--accent); box-shadow: var(--shadow-md); }
+        .writer-radio:checked + .writer-chip .writer-avatar-small { background: white; color: var(--accent); }
 
-        .input-area { width: 100%; border: none; background: transparent; font-size: 17px; line-height: 1.6; resize: none; min-height: 90px; outline: none; color: var(--text-main); }
-        .input-area::placeholder { color: #C8C0B8; }
-        .photo-btn { font-size: 24px; color: var(--primary); cursor: pointer; padding: 10px; transition: 0.3s; border-radius: 50%; background: var(--primary-soft); }
-        .photo-btn:hover { transform: scale(1.1); background: #FFE8EC; }
-        .img-preview { width: 100%; border-radius: 24px; margin-top: 20px; overflow: hidden; position: relative; display: none; box-shadow:var(--shadow-cloud); border: 3px solid white; }
-
-        /* 게시물 스타일 */
-        .feed-header { margin-bottom: 20px; }
-        .fp-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 3px solid var(--white); box-shadow: var(--shadow-cloud); }
-        .fp-info h4 { font-size: 17px; font-weight: 700; color: var(--text-main); }
-        
-        .feed-photo-frame { 
-            padding: 10px; background: white; border-radius: 24px; 
-            box-shadow: var(--shadow-cloud); margin-bottom: 20px; transform: rotate(-1.5deg); transition: 0.3s;
+        /* 게시물 디자인 */
+        .feed-item { padding-bottom: 20px; }
+        .feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .feed-profile-wrap { display: flex; align-items: center; gap: 12px; }
+        .feed-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-light); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); border: 1px solid var(--border-color); }
+        .feed-info h4 { font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+        .feed-info span { font-size: 13px; color: var(--text-secondary); }
+        .feed-body { font-size: 16px; line-height: 1.6; color: var(--text-primary); margin-bottom: 16px; white-space: pre-wrap; }
+        .feed-actions { display: flex; gap: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); }
+        .action-btn { 
+            display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 600; font-size: 14px; 
+            background: none; border: none; cursor: pointer; transition: 0.2s; padding: 8px 12px; border-radius: var(--radius-S);
         }
-        .feed-photo-frame:hover { transform: rotate(0deg) scale(1.02); }
-        .feed-photo-frame img { width: 100%; border-radius: 18px; display: block; }
-
-        .action-pill { 
-            padding: 10px 18px; background: rgba(255,255,255,0.7); border-radius: 20px; color: var(--text-sub); 
-            font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        .action-pill.liked { background: var(--primary-soft); color: var(--primary); box-shadow: 0 4px 12px rgba(255, 158, 170, 0.3); }
-        .action-pill:active { transform: scale(0.9); }
+        .action-btn:hover { background: var(--bg-main); color: var(--text-primary); }
+        .action-btn.liked { color: var(--accent); background: var(--accent-light); }
 
         /* 댓글 */
-        .comment-section { background: rgba(255,255,255,0.6); border-radius: 24px; padding: 20px; margin-top: 20px; }
-        .cmt-bubble { background: white; padding: 12px 18px; border-radius: 4px 24px 24px 24px; box-shadow: var(--shadow-cloud); }
-        .cmt-input-box { background: white; padding: 8px; border-radius: 30px; box-shadow: var(--shadow-cloud); }
-        .cmt-input { border: none; padding: 8px 10px; font-size: 14px; }
-        .cmt-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; border: none; box-shadow: 0 4px 12px rgba(255, 158, 170, 0.4); transition: 0.3s; }
-        .cmt-btn:active { transform: scale(0.9); }
+        .comment-box { background: var(--bg-main); border-radius: var(--radius-M); padding: 20px; margin-top: 16px; display: none; }
+        .comment-box.show { display: block; }
+        .cmt-item { display: flex; gap: 10px; margin-bottom: 16px; }
+        .cmt-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-light); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--accent); overflow: hidden; }
+        .cmt-content { background: var(--bg-white); padding: 10px 14px; border-radius: 4px 16px 16px 16px; box-shadow: var(--shadow-sm); flex: 1; border: 1px solid var(--border-color); }
+        .cmt-author { font-size: 13px; font-weight: 700; margin-bottom: 2px; display: block; }
+        .cmt-text { font-size: 14px; color: var(--text-primary); }
+        .cmt-input-wrap { display: flex; gap: 10px; margin-top: 20px; }
 
-        /* [캘린더] */
-        .cal-title { font-family: 'Dongle', sans-serif; font-size: 40px; color: var(--text-main); font-weight: 700; line-height: 1; }
-        .cal-arrow { width: 42px; height: 42px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); border: none; cursor: pointer; font-size: 18px; transition: 0.3s; box-shadow: 0 4px 10px rgba(255, 158, 170, 0.2); }
-        .cal-arrow:active { transform: scale(0.9); }
+        /* --- [탭 2: 캘린더] --- */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .cal-title { font-size: 24px; font-weight: 800; color: var(--text-primary); }
+        .cal-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
+        .cal-btn:hover { background: var(--bg-white); color: var(--accent); border-color: var(--accent); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
+        .day-label { font-size: 13px; color: var(--text-tertiary); font-weight: 600; margin-bottom: 12px; }
         .date-cell { 
-            min-height: 80px; background: rgba(255,255,255,0.7); border-radius: 20px; border: 2px solid transparent;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            min-height: 75px; background: var(--bg-white); border-radius: var(--radius-S); border: 1px solid var(--border-color);
+            display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 4px; cursor: pointer; transition: 0.2s; position: relative;
         }
-        .date-cell:hover { transform: translateY(-3px); box-shadow: var(--shadow-cloud); border-color: var(--primary-soft); }
-        .date-cell.today { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(255, 158, 170, 0.4); transform: scale(1.05); }
-        .event-badge { background: var(--accent-yellow); color: #7F6A20; padding: 4px 8px; border-radius: 10px; font-weight: 700; box-shadow: 0 2px 5px rgba(255, 217, 102, 0.3); }
+        .date-cell:hover { border-color: var(--accent); background: var(--accent-light); }
+        .date-cell.today { background: var(--accent); color: white; border-color: var(--accent); }
+        .event-marker { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 4px; }
+        .date-cell.today .event-marker { background: white; }
 
-        /* [가족] */
+        /* --- [탭 3: 가족] --- */
+        .family-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding: 0 20px; }
         .member-card { 
-            background: var(--card-bg); border-radius: 30px; padding: 25px 20px; text-align: center; 
-            box-shadow: var(--shadow-cloud); position: relative; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: blur(10px);
+            background: var(--bg-white); border-radius: var(--radius-L); padding: 24px 16px; text-align: center; 
+            box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); position: relative; transition: 0.3s;
         }
-        .member-card:hover { transform: translateY(-8px) scale(1.03); box-shadow: var(--shadow-hover); }
-        .mem-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; border: 4px solid white; box-shadow: var(--shadow-cloud); }
-        .mem-role { font-family: 'Dongle', sans-serif; font-size: 28px; font-weight: 700; margin-bottom: 5px; }
-        .add-card { border: 3px dashed var(--primary-soft); background: rgba(255, 240, 243, 0.5); color: var(--primary); gap: 15px; min-height: 220px; }
-        .add-card:hover { background: var(--primary-soft); border-color: var(--primary); transform: scale(1.05); }
+        .member-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+        .mem-avatar-large { width: 80px; height: 80px; border-radius: 50%; background: var(--accent-light); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--accent); overflow: hidden; border: 3px solid var(--bg-main); }
+        .mem-role { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+        .mem-name { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+        .mem-desc { font-size: 13px; color: var(--text-secondary); background: var(--bg-main); padding: 6px 12px; border-radius: 20px; display: inline-block; }
+        .btn-delete-mem { position: absolute; top: 12px; right: 12px; color: var(--text-tertiary); background: none; border: none; cursor: pointer; padding: 4px; opacity: 0.6; transition: 0.2s; }
+        .btn-delete-mem:hover { opacity: 1; color: var(--accent); }
+        
+        .add-member-card { background: var(--bg-main); border: 2px dashed var(--border-color); color: var(--text-tertiary); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; gap: 12px; cursor: pointer; font-weight: 600; }
+        .add-member-card:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
-        /* 네비게이션 (하단바) */
+        /* --- [네비게이션바 (모바일 최적화)] --- */
         .nav-bar {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; height: 75px;
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
-            border-radius: 50px; box-shadow: var(--shadow-cloud);
-            display: flex; justify-content: space-around; align-items: center; padding: 0 10px; z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 80px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-color); box-shadow: var(--shadow-lg);
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: env(safe-area-inset-bottom); z-index: 100;
         }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #C8C0B8; cursor: pointer; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); padding: 10px 20px; border-radius: 30px; }
-        .nav-item i { font-size: 24px; margin-bottom: 4px; transition: 0.4s; }
-        .nav-item.active { color: var(--primary); background: var(--primary-soft); box-shadow: 0 4px 15px rgba(255, 158, 170, 0.3); }
-        .nav-item.active i { transform: scale(1.1); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-tertiary); cursor: pointer; transition: 0.3s; width: 100%; gap: 4px; }
+        .nav-item i { font-size: 24px; transition: 0.3s; }
+        .nav-item span { font-size: 11px; font-weight: 600; }
+        .nav-item.active { color: var(--accent); }
+        .nav-item.active i { transform: translateY(-2px); }
 
-        /* 모달 */
-        .modal-bg { background: rgba(93, 83, 74, 0.3); backdrop-filter: blur(8px); }
-        .modal-box { background: var(--bg-color); width: 88%; padding: 32px; border-radius: 36px; box-shadow: var(--shadow-hover); animation: softPopUp 0.5s; }
-        .modal-tit { font-size: 32px; color: var(--primary); }
-        .inp-cozy { padding: 14px 20px; border: 2px solid var(--primary-soft); border-radius: 20px; font-size: 16px; background: white; }
-        .inp-cozy:focus { border-color: var(--primary); box-shadow: 0 4px 15px rgba(255, 158, 170, 0.2); }
-        .btn-m { padding: 15px; border-radius: 20px; font-size: 16px; transition: 0.3s; }
-        .btn-gray { background: #F1F3F5; color: var(--text-sub); }
-        .btn-pink { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(255, 158, 170, 0.4); }
-        .btn-pink:active { transform: scale(0.95); }
+        /* --- [모달] --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--bg-white); width: 90%; max-width: 380px; padding: 32px; border-radius: var(--radius-L); box-shadow: var(--shadow-lg); animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes modalUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 24px; text-align: center; }
+        .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
 
-        @media (min-width: 768px) {
-            .app-layout { padding: 50px; }
-            .nav-bar { bottom: auto; left: 50px; top: 50%; transform: translateY(-50%); width: 80px; height: auto; flex-direction: column; padding: 30px 10px; border-radius: 50px; gap: 20px; }
-            .nav-item { padding: 20px 10px; width: 100%; } .nav-item span { display: none; }
-            .main-content { margin-left: 120px; }
-            .family-grid { grid-template-columns: repeat(3, 1fr); }
-        }
+        /* --- [빈 상태 (Empty State)] --- */
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-tertiary); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; color: var(--border-color); }
+        .empty-state p { font-size: 16px; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="blob-bg">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="blob blob-3"></div>
-    </div>
 
-    <div class="app-layout">
+    <div class="app-container">
         <header class="header">
-            <div class="logo-area">
-                <span class="logo-sub">몽글몽글한 우리들의 하루</span>
-                <h1 class="logo-txt">행복한 <span>우리집</span></h1>
-            </div>
-            <div class="my-profile" id="headerProfile">
-                <i class="fa-solid fa-user" style="color:#CED4DA;"></i>
+            <h1>우리 가족 공간</h1>
+            <div class="header-profile" id="headerProfile">
+                <i class="fa-solid fa-user"></i>
             </div>
         </header>
 
-        <nav class="nav-bar">
-            <div class="nav-item active" onclick="changeTab('feed', this)">
-                <i class="fa-solid fa-house-chimney"></i><span>홈</span>
-            </div>
-            <div class="nav-item" onclick="changeTab('calendar', this)">
-                <i class="fa-regular fa-calendar-check"></i><span>일정</span>
-            </div>
-            <div class="nav-item" onclick="changeTab('family', this)">
-                <i class="fa-solid fa-face-smile"></i><span>가족</span>
-            </div>
-        </nav>
+        <main>
+            <div id="feed" class="tab-content active">
+                <div class="card">
+                    <div style="margin-bottom:16px; font-weight:700; color:var(--text-secondary);">오늘의 이야기 기록하기 ✍️</div>
+                    
+                    <div class="writer-select-wrap" id="writerChips">
+                        <div style="padding:10px; color:var(--text-tertiary); font-size:14px;">가족 멤버를 불러오는 중...</div>
+                    </div>
+                    
+                    <textarea id="postContent" class="input-field" style="min-height:100px;" placeholder="어떤 하루를 보내셨나요?"></textarea>
+                    
+                    <div id="imagePreviewBox" class="img-box" style="display:none; margin-top:16px; height:auto; max-height:300px;">
+                        <img id="imagePreview" src="" onerror="this.style.display='none';">
+                        <button onclick="clearImage()" style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.6); color:white; border:none; width:32px; height:32px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
 
-        <main id="mainContent">
-            <div id="feed" class="tab-section active">
-                <div class="cozy-card">
-                    <div style="margin-bottom:15px; font-size:15px; font-weight:700; color:var(--text-sub); display:flex; align-items:center; gap:8px;">
-                        <i class="fa-solid fa-pen-nib" style="color:var(--primary);"></i> 오늘의 기록 남기기
-                    </div>
-                    <div class="writer-select" id="writerChips">
-                        <div style="font-size:14px; color:#ADB5BD; padding:10px;">가족을 먼저 등록해주세요! ☁️</div>
-                    </div>
-                    <textarea id="postContent" class="input-area" placeholder="어떤 즐거운 일이 있었나요? 😊"></textarea>
-                    <div id="imagePreviewBox" class="img-preview">
-                        <img id="imagePreview" src="">
-                        <button class="btn-x" onclick="clearImage()"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; border-top:2px dashed var(--primary-soft); padding-top:20px;">
-                        <label for="imageInput" class="photo-btn"><i class="fa-regular fa-image"></i></label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                        <label for="imageInput" class="btn-icon" style="background:var(--bg-main);"><i class="fa-regular fa-image"></i></label>
                         <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-                        <button id="btnPost" class="btn-jelly" onclick="addPost()">올리기 <i class="fa-solid fa-paper-plane"></i></button>
+                        <button id="btnPost" class="btn-primary" style="width:auto; padding-left:32px; padding-right:32px;" onclick="addPost()">올리기</button>
                     </div>
                 </div>
-                <div id="loading-spinner" style="text-align:center; padding:40px; color:var(--primary); display:none;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;"></i>
+
+                <div id="loading-spinner" style="text-align:center; padding:40px; color:var(--accent); display:none;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size:28px;"></i>
                 </div>
+                
                 <div id="feed-container"></div>
-                <div style="text-align:center; margin-top:30px;">
-                    <button id="btnLoadMore" class="btn-jelly soft" style="display:none; margin:0 auto; padding:12px 30px;" onclick="loadMorePosts()">더 보기 👇</button>
+                
+                <div style="text-align:center; margin-top:24px;">
+                    <button id="btnLoadMore" class="btn-primary" style="display:none; margin:0 auto; background:var(--accent-light); color:var(--accent); width:auto;" onclick="loadMorePosts()">더 보기</button>
                 </div>
             </div>
 
-            <div id="calendar" class="tab-section">
-                <div class="cozy-card">
+            <div id="calendar" class="tab-content">
+                <div class="card">
                     <div class="cal-header">
-                        <button class="cal-arrow" onclick="moveMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-                        <h2 id="month-display" class="cal-title"></h2>
-                        <button class="cal-arrow" onclick="moveMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                        <button class="cal-btn" onclick="moveMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <h2 id="month-display" style="font-size:22px; font-weight:800;"></h2>
+                        <button class="cal-btn" onclick="moveMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
-                    <div class="cal-grid" style="margin-bottom:15px;">
-                        <div class="day-name" style="color:var(--primary)">일</div><div class="day-name">월</div><div class="day-name">화</div><div class="day-name">수</div><div class="day-name">목</div><div class="day-name">금</div><div class="day-name">토</div>
+                    <div class="cal-grid" style="margin-bottom:12px;">
+                        <div class="day-label" style="color:var(--accent)">일</div><div class="day-label">월</div><div class="day-label">화</div><div class="day-label">수</div><div class="day-label">목</div><div class="day-label">금</div><div class="day-label">토</div>
                     </div>
                     <div id="calendar-days" class="cal-grid"></div>
                 </div>
             </div>
 
-            <div id="family" class="tab-section">
-                <div style="padding:10px 24px 25px; text-align:center;">
-                    <h2 class="font-cute" style="font-size:34px; color:var(--primary);">사랑하는 우리가족 👨‍👩‍👧‍👦</h2>
+            <div id="family" class="tab-content">
+                <div style="padding:0 24px 24px;">
+                    <h2 style="font-size:24px; font-weight:800;">우리 가족 멤버</h2>
+                    <p style="color:var(--text-secondary); font-size:14px; margin-top:4px;">함께하는 소중한 사람들</p>
                 </div>
                 <div id="family-container" class="family-grid"></div>
-                <div id="noFamilyMsg" style="text-align:center; padding:60px; color:var(--text-sub); display:none; font-size:16px;">
-                    가족 멤버를 추가해주세요! 🤗
+                <div id="noFamilyMsg" class="empty-state" style="display:none;">
+                    <i class="fa-solid fa-users"></i>
+                    <p>아직 등록된 가족이 없어요.<br>멤버를 추가해보세요!</p>
                 </div>
             </div>
         </main>
+
+        <nav class="nav-bar">
+            <div class="nav-item active" onclick="changeTab('feed', this)">
+                <i class="fa-solid fa-house"></i><span>홈</span>
+            </div>
+            <div class="nav-item" onclick="changeTab('calendar', this)">
+                <i class="fa-regular fa-calendar"></i><span>일정</span>
+            </div>
+            <div class="nav-item" onclick="changeTab('family', this)">
+                <i class="fa-solid fa-user-group"></i><span>가족</span>
+            </div>
+        </nav>
     </div>
 
-    <div id="eventModal" class="modal-bg">
-        <div class="modal-box">
-            <h3 class="modal-tit">📅 일정 추가하기</h3>
-            <p id="modalDateDisplay" style="text-align:center; color:var(--primary); font-weight:700; margin-bottom:25px; font-size:18px;"></p>
-            <ul id="eventList" style="list-style:none; margin-bottom:25px; max-height:120px; overflow-y:auto; color:var(--text-main); font-size:15px;"></ul>
+    <div id="eventModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">📅 일정 관리</h3>
+            <p id="modalDateDisplay" style="text-align:center; color:var(--accent); font-weight:700; margin-bottom:24px; font-size:18px;"></p>
+            <ul id="eventList" style="list-style:none; margin-bottom:24px; max-height:150px; overflow-y:auto; color:var(--text-primary);"></ul>
             <input type="hidden" id="eventDate">
-            <input type="text" id="eventTitle" class="inp-cozy" placeholder="일정을 입력하세요 ✏️" onkeydown="handleEnter(event)">
-            <div class="modal-btns">
-                <button class="btn-m btn-gray" onclick="closeModal('eventModal')">닫기</button>
-                <button class="btn-m btn-pink" onclick="saveEvent()">저장! ✨</button>
+            <input type="text" id="eventTitle" class="input-field" placeholder="새로운 일정 입력" onkeydown="handleEnter(event)">
+            <div class="modal-actions">
+                <button class="btn-primary" style="background:var(--bg-main); color:var(--text-secondary);" onclick="closeModal('eventModal')">닫기</button>
+                <button class="btn-primary" onclick="saveEvent()">저장</button>
             </div>
         </div>
     </div>
 
-    <div id="familyModal" class="modal-bg">
-        <div class="modal-box">
-            <h3 class="modal-tit">😊 가족 멤버 추가</h3>
-            <div style="text-align:center; margin-bottom:30px;">
+    <div id="familyModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="modal-title">가족 멤버 추가</h3>
+            <div style="text-align:center; margin-bottom:24px;">
                 <label for="famImgInput" style="display:inline-block; cursor:pointer;">
-                    <div id="famImgPreview" style="width:110px; height:110px; border-radius:50%; background:#FFF0F3; display:flex; align-items:center; justify-content:center; overflow:hidden; border:4px solid white; box-shadow: var(--shadow-cloud);">
-                        <i class="fa-solid fa-camera" style="color:var(--primary); font-size:28px;"></i>
+                    <div id="famImgPreview" class="mem-avatar-large" style="margin-bottom:0; width:100px; height:100px; font-size:40px; border:3px solid var(--bg-main); box-shadow:var(--shadow-sm);">
+                        <i class="fa-solid fa-camera"></i>
                     </div>
                 </label>
                 <input type="file" id="famImgInput" accept="image/*" style="display:none;" onchange="handleFamImgSelect(event)">
             </div>
-            <input type="text" id="famRole" class="inp-cozy" placeholder="역할 (예: 아빠, 첫째)">
-            <input type="text" id="famName" class="inp-cozy" placeholder="이름 (선택)">
-            <input type="text" id="famDesc" class="inp-cozy" placeholder="한 마디 소개 💬">
-            <div class="modal-btns">
-                <button class="btn-m btn-gray" onclick="closeModal('familyModal')">취소</button>
-                <button id="btnSaveFam" class="btn-m btn-pink" onclick="saveFamily()">추가하기! 🎉</button>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <input type="text" id="famRole" class="input-field" placeholder="역할 (예: 아빠, 엄마)">
+                <input type="text" id="famName" class="input-field" placeholder="이름 (선택)">
+                <input type="text" id="famDesc" class="input-field" placeholder="상태 메시지">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" style="background:var(--bg-main); color:var(--text-secondary);" onclick="closeModal('familyModal')">취소</button>
+                <button id="btnSaveFam" class="btn-primary" onclick="saveFamily()">추가하기</button>
             </div>
         </div>
     </div>
@@ -343,97 +322,114 @@
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio", authDomain: "our-family-home.firebaseapp.com", projectId: "our-family-home", storageBucket: "our-family-home.firebasestorage.app", messagingSenderId: "446464856858", appId: "1:446464856858:web:344f2c83aeda0ea9ae52a3" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
-        function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.7));};i.src=e.target.result;};r.readAsDataURL(f);}
 
+        /* 이미지 압축 */
+        function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.8));};i.src=e.target.result;};r.readAsDataURL(f);}
+
+        /* 데이터 관리 & UI 렌더링 */
         let familyData=[], selectedRole="";
         function loadFamily(){
             db.collection("family_members").orderBy("timestamp").onSnapshot(snap=>{
                 familyData=[]; const con=document.getElementById('family-container'); const chips=document.getElementById('writerChips');
                 con.innerHTML=""; chips.innerHTML=""; document.getElementById('noFamilyMsg').style.display=snap.empty?'block':'none';
+                
+                if(snap.empty){
+                    chips.innerHTML=`<div class="empty-state" style="padding:20px;font-size:14px;">가족을 먼저 등록해주세요.</div>`;
+                }
+
                 snap.forEach(doc=>{
                     const d=doc.data(); familyData.push({id:doc.id,...d});
-                    const imgHtml=d.imageUrl?`<img src="${d.imageUrl}" class="mem-img">`:`<div class="mem-img" style="background:#FFF0F3;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:28px;color:var(--primary);"></i></div>`;
-                    con.innerHTML+=`<div class="member-card"><button class="btn-del" onclick="delFamily('${doc.id}')"><i class="fa-solid fa-xmark"></i></button>${imgHtml}<div class="mem-role">${d.role}</div><div class="mem-name">${d.name||''}</div><div class="mem-desc">${d.desc||'반가워요!'}</div></div>`;
-                    chips.innerHTML+=`<input type="radio" name="auth" id="c-${doc.id}" class="radio-hidden" value="${d.role}" data-id="${doc.id}" onchange="selAuth(this)"><label for="c-${doc.id}" class="writer-chip"><div class="writer-chip-img">${d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<div style="width:100%;height:100%;background:#FFF0F3;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:12px;color:var(--primary);"></i></div>`}</div> ${d.role}</label>`;
+                    // 가족 카드 렌더링 (깨짐 방지 적용)
+                    const imgHtml=d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid fa-user\\'></i>'">`:`<i class="fa-solid fa-user"></i>`;
+                    con.innerHTML+=`
+                    <div class="member-card">
+                        <button class="btn-delete-mem" onclick="delFamily('${doc.id}')"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="mem-avatar-large">${imgHtml}</div>
+                        <div class="mem-role">${d.role}</div>
+                        <div class="mem-name">${d.name||''}</div>
+                        <div class="mem-desc">${d.desc||'반가워요'}</div>
+                    </div>`;
+                    // 작성자 칩 렌더링
+                    const chipImg=d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user"></i>`;
+                    chips.innerHTML+=`<input type="radio" name="auth" id="c-${doc.id}" class="writer-radio" value="${d.role}" data-id="${doc.id}" onchange="selAuth(this)"><label for="c-${doc.id}" class="writer-chip"><div class="writer-avatar-small">${chipImg}</div> ${d.role}</label>`;
                 });
-                con.innerHTML+=`<div class="member-card add-card" onclick="openFamModal()"><i class="fa-solid fa-plus-circle" style="font-size:36px;"></i><span style="font-weight:700;">가족 추가</span></div>`;
+                con.innerHTML+=`<div class="member-card add-member-card" onclick="openFamModal()"><i class="fa-solid fa-plus-circle" style="font-size:32px;"></i><span>가족 추가</span></div>`;
                 updateHeaderProf();
             });
         }
         function selAuth(rd){ selectedRole=rd.value; updateHeaderProf(); }
-        function updateHeaderProf(){ const hp=document.getElementById('headerProfile'); if(!selectedRole){ hp.innerHTML=`<i class="fa-solid fa-user" style="color:#CED4DA;"></i>`; return; } const mem=familyData.find(m=>m.role===selectedRole); if(mem&&mem.imageUrl) hp.innerHTML=`<img src="${mem.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`; else hp.innerHTML=`<i class="fa-solid fa-user" style="color:var(--primary);font-size:20px;"></i>`; }
+        function updateHeaderProf(){ 
+            const hp=document.getElementById('headerProfile'); 
+            if(!selectedRole){ hp.innerHTML=`<i class="fa-solid fa-user" style="color:var(--text-tertiary);"></i>`; return; } 
+            const mem=familyData.find(m=>m.role===selectedRole); 
+            if(mem&&mem.imageUrl) hp.innerHTML=`<img src="${mem.imageUrl}" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid fa-user\\'></i>'">`; 
+            else hp.innerHTML=`<i class="fa-solid fa-user"></i>`; 
+        }
 
+        /* 피드 */
         let feedImg=null, postLimit=5, unsubFeed=null;
-        function handleImageSelect(e){if(e.target.files[0])compressImage(e.target.files[0],800,d=>{feedImg=d;document.getElementById('imagePreview').src=d;document.getElementById('imagePreviewBox').style.display='block';});}
+        function handleImageSelect(e){if(e.target.files[0])compressImage(e.target.files[0],1024,d=>{feedImg=d;document.getElementById('imagePreview').src=d;document.getElementById('imagePreviewBox').style.display='flex';});}
         function clearImage(){feedImg=null;document.getElementById('imageInput').value='';document.getElementById('imagePreviewBox').style.display='none';}
         function addPost(){
-            if(!selectedRole) return alert("누가 글을 쓰나요? 솜사탕을 선택해주세요! ☁️"); const txt=document.getElementById('postContent').value, btn=document.getElementById('btnPost');
-            if(!txt&&!feedImg) return alert("내용을 입력해주세요! ✍️"); const mem=familyData.find(m=>m.role===selectedRole); btn.disabled=true; btn.innerHTML="<i class='fa-solid fa-spinner fa-spin'></i> 저장 중...";
+            if(!selectedRole) return alert("작성자를 선택해주세요."); const txt=document.getElementById('postContent').value, btn=document.getElementById('btnPost');
+            if(!txt&&!feedImg) return alert("내용을 입력해주세요."); const mem=familyData.find(m=>m.role===selectedRole); btn.disabled=true; btn.innerHTML="<i class='fa-solid fa-spinner fa-spin'></i> 업로드 중";
             db.collection("family_posts").add({author:selectedRole,authorImg:mem?mem.imageUrl:null,content:txt,imageUrl:feedImg,likes:0,comments:[],timestamp:firebase.firestore.FieldValue.serverTimestamp()})
-            .then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerHTML="올리기 <i class='fa-solid fa-paper-plane'></i>"; window.scrollTo(0,0);})
-            .catch(()=>{alert("오류가 났어요! 😢");btn.disabled=false;btn.innerHTML="올리기 <i class='fa-solid fa-paper-plane'></i>";});
+            .then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerHTML="올리기"; window.scrollTo(0,0);})
+            .catch(()=>{alert("오류가 발생했습니다.");btn.disabled=false;btn.innerHTML="올리기";});
         }
         function loadFeed(){
             if(unsubFeed)unsubFeed(); document.getElementById('loading-spinner').style.display='block';
             unsubFeed=db.collection("family_posts").orderBy("timestamp","desc").limit(postLimit).onSnapshot(snap=>{
                 document.getElementById('loading-spinner').style.display='none'; const con=document.getElementById('feed-container'); con.innerHTML="";
+                if(snap.empty){ con.innerHTML=`<div class="empty-state"><i class="fa-regular fa-folder-open"></i><p>첫 번째 이야기를 올려보세요!</p></div>`; }
                 snap.forEach(doc=>renderPost(doc.id,doc.data(),con)); document.getElementById('btnLoadMore').style.display=snap.size>=postLimit?'block':'none';
             });
         }
         function loadMorePosts(){postLimit+=5;loadFeed();}
         function renderPost(id,d,con){
-            const pImg=d.authorImg?`<img src="${d.authorImg}" class="fp-img">`:`<div class="fp-img" style="background:#FFF0F3;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:20px;color:var(--primary);"></i></div>`;
-            const contentImg=d.imageUrl?`<div class="feed-photo-frame"><img src="${d.imageUrl}"></div>`:'';
-            let cmts=""; if(d.comments)d.comments.forEach(c=>{ const cImg=c.authorImg?`<img src="${c.authorImg}" class="cmt-img">`:`<div class="cmt-img" style="background:#FFF0F3;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:12px;color:var(--primary);"></i></div>`; cmts+=`<div class="cmt-row">${cImg}<div class="cmt-bubble"><span class="cmt-user">${c.author}</span><span class="cmt-text">${c.text}</span></div></div>`; });
+            const pImg=d.authorImg?`<img src="${d.authorImg}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user"></i>`;
+            const contentImg=d.imageUrl?`<div class="img-box" style="margin-bottom:16px;"><img src="${d.imageUrl}" onerror="this.parentElement.style.display='none'"></div>`:'';
+            let cmts=""; if(d.comments)d.comments.forEach(c=>{ const cImg=c.authorImg?`<img src="${c.authorImg}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user"></i>`; cmts+=`<div class="cmt-item"><div class="cmt-avatar">${cImg}</div><div class="cmt-content"><span class="cmt-author">${c.author}</span><span class="cmt-text">${c.text}</span></div></div>`; });
             let cmtOpts=""; familyData.forEach(m=>{ cmtOpts+=`<option value="${m.role}" ${m.role===selectedRole?'selected':''}>${m.role}</option>`; });
             con.innerHTML+=`
-            <div class="cozy-card">
-                <div class="feed-header"><div class="feed-profile">${pImg}<div class="fp-info"><h4>${d.author}</h4><span>${d.timestamp?new Date(d.timestamp.toDate()).toLocaleDateString():'방금 전'}</span></div></div><button onclick="delPost('${id}')" style="border:none;background:none;color:#C8C0B8;font-size:18px;padding:5px;"><i class="fa-solid fa-ellipsis-vertical"></i></button></div>
-                <div class="feed-content">${d.content}</div>${contentImg}
-                <div class="feed-actions"><button class="action-pill ${d.likes>0?'liked':''}" onclick="likePost('${id}',${d.likes})"><i class="fa-solid fa-heart"></i> ${d.likes||0}</button><button class="action-pill" onclick="toggleCmt('${id}')"><i class="fa-solid fa-comment-dots"></i> 댓글</button></div>
-                <div id="cmt-${id}" class="comment-section"><div style="margin-bottom:15px;max-height:150px;overflow-y:auto;padding-right:5px;">${cmts}</div><div class="cmt-input-box"><select id="cAuth-${id}" class="cmt-select">${cmtOpts}</select><input type="text" id="cInp-${id}" class="cmt-input" placeholder="댓글 남기기... 💬" onkeydown="if(event.key==='Enter')addCmt('${id}')"><button class="cmt-btn" onclick="addCmt('${id}')"><i class="fa-solid fa-arrow-up"></i></button></div></div>
+            <div class="card feed-item">
+                <div class="feed-header"><div class="feed-profile-wrap"><div class="feed-avatar">${pImg}</div><div class="feed-info"><h4>${d.author}</h4><span>${d.timestamp?new Date(d.timestamp.toDate()).toLocaleDateString():'방금 전'}</span></div></div><button onclick="delPost('${id}')" class="btn-icon"><i class="fa-solid fa-ellipsis"></i></button></div>
+                <div class="feed-body">${d.content}</div>${contentImg}
+                <div class="feed-actions"><button class="action-btn ${d.likes>0?'liked':''}" onclick="likePost('${id}',${d.likes})"><i class="${d.likes>0?'fa-solid':'fa-regular'} fa-heart"></i> ${d.likes||0}</button><button class="action-btn" onclick="toggleCmt('${id}')"><i class="fa-regular fa-comment"></i> 댓글</button></div>
+                <div id="cmt-${id}" class="comment-box"><div style="margin-bottom:16px;max-height:200px;overflow-y:auto;">${cmts}</div><div class="cmt-input-wrap"><select id="cAuth-${id}" class="input-field" style="width:auto;">${cmtOpts}</select><input type="text" id="cInp-${id}" class="input-field" placeholder="댓글 입력..." onkeydown="if(event.key==='Enter')addCmt('${id}')"><button class="btn-primary" style="width:auto;" onclick="addCmt('${id}')"><i class="fa-solid fa-arrow-up"></i></button></div></div>
             </div>`;
         }
         function likePost(id,n){db.collection("family_posts").doc(id).update({likes:(n||0)+1});}
-        function delPost(id){if(confirm("정말 삭제할까요? 🥺"))db.collection("family_posts").doc(id).delete();}
+        function delPost(id){if(confirm("게시물을 삭제할까요?"))db.collection("family_posts").doc(id).delete();}
         function toggleCmt(id){document.getElementById(`cmt-${id}`).classList.toggle('show');}
         function addCmt(id){const r=document.getElementById(`cAuth-${id}`).value,t=document.getElementById(`cInp-${id}`).value; if(!t)return; const m=familyData.find(x=>x.role===r); db.collection("family_posts").doc(id).update({comments:firebase.firestore.FieldValue.arrayUnion({author:r,text:t,authorImg:m?m.imageUrl:null})});}
 
+        /* 캘린더 */
         let curDate=new Date(), events=[], curModDate=null;
         function loadCal(){
-            const y=curDate.getFullYear(), m=curDate.getMonth(); document.getElementById('month-display').innerText=`${m+1}월`;
+            const y=curDate.getFullYear(), m=curDate.getMonth(); document.getElementById('month-display').innerText=`${y}년 ${m+1}월`;
             const f=new Date(y,m,1), l=new Date(y,m+1,0), con=document.getElementById('calendar-days'); con.innerHTML="";
             for(let i=0;i<f.getDay();i++)con.innerHTML+=`<div></div>`;
             for(let i=1;i<=l.getDate();i++){
-                const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`, evs=events.filter(e=>e.date===dStr), hasEv=evs.map(e=>`<div class="event-badge">${e.title}</div>`).join(''), tdy=new Date().toDateString()===new Date(y,m,i).toDateString()?'today':'';
-                con.innerHTML+=`<div class="date-cell ${tdy}" onclick="openEvModal('${dStr}')"><span class="date-num">${i}</span>${hasEv}</div>`;
+                const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`, evs=events.filter(e=>e.date===dStr), hasEv=evs.length?`<div class="event-marker"></div>`:'', tdy=new Date().toDateString()===new Date(y,m,i).toDateString()?'today':'';
+                con.innerHTML+=`<div class="date-cell ${tdy}" onclick="openEvModal('${dStr}')"><span style="font-weight:600;font-size:14px;">${i}</span>${hasEv}</div>`;
             }
         }
         function moveMonth(n){curDate.setMonth(curDate.getMonth()+n);loadCal();}
-        function openEvModal(d){curModDate=d; openModal(`${d} 일정 🗓️`, `<ul id="evList" style="list-style:none;margin-bottom:15px;padding:0;"></ul><input type="hidden" id="evDate" value="${d}">`, null); renderEvList(); }
-        function renderEvList(){const el=document.getElementById('eventList'); const evs=events.filter(e=>e.date===curModDate); el.innerHTML=evs.length?"": "<li style='color:#ccc;text-align:center;padding:10px;'>일정이 없어요. 😴</li>"; evs.forEach(e=>el.innerHTML+=`<li style="display:flex;justify-content:space-between;padding:12px 5px;border-bottom:1px dashed #eee;"><span>${e.title}</span><i class="fa-solid fa-trash" style="color:var(--primary);cursor:pointer;" onclick="delEv('${e.id}')"></i></li>`); 
-        document.getElementById('modalDateDisplay').innerText=curModDate; document.getElementById('eventDate').value=curModDate; document.getElementById('eventModal').style.display='flex'; }
+        function openEvModal(d){curModDate=d; document.getElementById('modalDateDisplay').innerText=d; renderEvList(); document.getElementById('eventModal').style.display='flex'; }
+        function renderEvList(){const el=document.getElementById('eventList'); const evs=events.filter(e=>e.date===curModDate); el.innerHTML=evs.length?"": "<li style='color:var(--text-tertiary);text-align:center;padding:10px;'>일정이 없습니다.</li>"; evs.forEach(e=>el.innerHTML+=`<li style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);"><span>${e.title}</span><button class="btn-icon" style="color:#EF4444;padding:4px;" onclick="delEv('${e.id}')"><i class="fa-solid fa-trash"></i></button></li>`); }
         function saveEvent(){const t=document.getElementById('eventTitle').value; if(curModDate&&t) db.collection("family_events").add({date:curModDate,title:t,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{document.getElementById('eventTitle').value=''; closeModal('eventModal');});}
         function delEv(id){if(confirm("일정을 삭제할까요?"))db.collection("family_events").doc(id).delete();}
         db.collection("family_events").orderBy("timestamp").onSnapshot(s=>{events=[];s.forEach(d=>events.push({id:d.id,...d.data()}));loadCal();if(curModDate)renderEvList();});
 
-        let famImg=null;
-        function openModal(tit, bodyHtml, confirmFn){ } function closeModal(id){ document.getElementById(id).style.display='none'; famImg=null; curModDate=null; }
+        /* 공통 및 기타 */
+        let famImg=null; function closeModal(id){ document.getElementById(id).style.display='none'; famImg=null; curModDate=null; }
         function openFamModal(){ document.getElementById('familyModal').style.display='flex'; }
-        function handleFamImgSelect(e){if(e.target.files[0])compressImage(e.target.files[0],500,d=>{famImg=d;document.getElementById('famImgPreview').innerHTML=`<img src="${d}" style="width:100%;height:100%;object-fit:cover;">`;});}
-        function saveFam(){
-            const r=document.getElementById('famRole').value, n=document.getElementById('famName').value, d=document.getElementById('famDesc').value;
-            if(!r)return alert("역할을 입력해주세요! 🤔"); const btn=document.getElementById('btnSaveFam'); btn.disabled=true; btn.innerText="추가하는 중... ☁️";
-            db.collection("family_members").add({role:r,name:n,desc:d,imageUrl:famImg,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{closeModal('familyModal');btn.disabled=false;btn.innerText="추가하기! 🎉";}).catch(()=>{alert("오류가 났어요! 😢");btn.disabled=false;btn.innerText="추가하기! 🎉";});
-        }
-        function delFamily(id){if(confirm("정말 멤버를 삭제할까요? 🥺"))db.collection("family_members").doc(id).delete();}
+        function handleFamImgSelect(e){if(e.target.files[0])compressImage(e.target.files[0],500,d=>{famImg=d;document.getElementById('famImgPreview').innerHTML=`<img src="${d}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid fa-user\\'></i>'">`;});}
+        function saveFam(){ const r=document.getElementById('famRole').value, n=document.getElementById('famName').value, d=document.getElementById('famDesc').value; if(!r)return alert("역할을 입력해주세요."); const btn=document.getElementById('btnSaveFam'); btn.disabled=true; btn.innerText="저장 중..."; db.collection("family_members").add({role:r,name:n,desc:d,imageUrl:famImg,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{closeModal('familyModal');btn.disabled=false;btn.innerText="추가하기";}).catch(()=>{alert("오류가 발생했습니다.");btn.disabled=false;btn.innerText="추가하기";}); }
+        function delFamily(id){if(confirm("멤버를 삭제할까요?"))db.collection("family_members").doc(id).delete();}
         function handleEnter(e){if(e.key==='Enter'&&!e.isComposing)saveEvent();}
-
-        window.changeTab = function(id, el) {
-            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active');
-            window.scrollTo(0,0);
-        }
+        window.changeTab = function(id, el) { document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); window.scrollTo(0,0); }
         loadFeed(); loadCal(); loadFamily();
     </script>
 </body>
