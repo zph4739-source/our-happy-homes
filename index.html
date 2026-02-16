@@ -3,558 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>OUR FAM UNIVERSE</title>
-    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <title>NEON CITY FAM LOG</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* [Theme: Neon Aurora Space Odyssey] */
+        /* [Theme: Neon City Cyberpunk] */
         :root {
-            --bg-dark: #050508; /* 더 깊은 우주색 */
-            --glass-surface: rgba(255, 255, 255, 0.04);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 255, 255, 0.15);
-            --text-main: #FFFFFF;
-            --text-sub: rgba(255, 255, 255, 0.6);
-            --accent-purple: #B249F8; --accent-blue: #49F8C8; --accent-pink: #F84992;
-            --radius-L: 24px; --radius-M: 18px; /* 모바일 고려하여 라운드 약간 조정 */
+            --bg-dark: #0a0a0f;
+            --neon-pink: #ff0055;
+            --neon-blue: #00e5ff;
+            --neon-purple: #9d00ff;
+            --cyber-panel: rgba(16, 16, 24, 0.9);
+            --cyber-border: rgba(0, 229, 255, 0.3);
+            --text-main: #ffffff;
+            --text-sub: rgba(255, 255, 255, 0.7);
+            --clip-corner: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%); /* 우하단 컷 */
+            --clip-btn: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); /* 양쪽 컷 */
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
-            font-family: 'Pretendard', sans-serif; background-color: var(--bg-dark); color: var(--text-main);
-            min-height: 100vh; overflow-x: hidden; perspective: 1000px;
-        }
-
-        /* --- [배경 이펙트: 오로라 + 스타필드] --- */
-        .aurora-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3; overflow: hidden; background: var(--bg-dark); }
-        .aurora-blob { position: absolute; filter: blur(90px); opacity: 0.35; animation: moveAurora 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); }
-        .blob-1 { top: -30%; left: -30%; width: 80%; height: 80%; background: var(--accent-purple); animation-delay: -5s; }
-        .blob-2 { bottom: -40%; right: -30%; width: 90%; height: 90%; background: var(--accent-blue); animation-delay: -12s; }
-        .blob-3 { top: 40%; left: 40%; width: 60%; height: 60%; background: var(--accent-pink); animation-delay: -3s; opacity: 0.25; }
-        @keyframes moveAurora {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(15%, 15%) rotate(15deg); }
-        }
-        /* [NEW] 스타필드 효과 (별이 흐르는 느낌) */
-        .star-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 200%; z-index: -2;
+            font-family: 'Rajdhani', sans-serif; background-color: var(--bg-dark); color: var(--text-main);
+            min-height: 100vh; overflow-x: hidden;
+            /* [배경 효과] 사이버 그리드 + 비네팅 */
             background-image: 
-                radial-gradient(1px 1px at 20px 30px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 40px 70px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 50px 160px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 90px 40px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 130px 80px, #fff, rgba(0,0,0,0)),
-                radial-gradient(1.5px 1.5px at 160px 120px, #fff, rgba(0,0,0,0));
-            background-repeat: repeat; background-size: 200px 200px;
-            animation: moveStars 100s linear infinite; opacity: 0.4;
+                linear-gradient(rgba(0, 229, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at center, transparent 30%, var(--bg-dark) 90%);
+            background-size: 40px 40px, 40px 40px, 100% 100%;
+            background-position: center center;
         }
-        @keyframes moveStars { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-        .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.04; background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); pointer-events: none; }
 
-        /* 레이아웃 조정 (모바일 패딩 최적화) */
-        .app-layout { max-width: 600px; margin: 0 auto; padding-bottom: 120px; }
-
-        /* 헤더 & 글리치 이펙트 */
-        .header { 
-            padding: 30px 20px 15px; display: flex; justify-content: space-between; align-items: flex-end; 
-            position: sticky; top: 0; z-index: 50;
-            background: linear-gradient(to bottom, rgba(5,5,8,0.9) 0%, rgba(5,5,8,0) 100%);
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        /* [CRT 스캔라인 효과] */
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, rgba(0,0,0,0.15) 1px, transparent 1px, transparent 3px);
+            pointer-events: none; opacity: 0.6;
         }
-        /* [NEW] 사이버펑크 글리치 효과 */
-        .glitch-title {
-            font-size: 28px; font-weight: 900; letter-spacing: -0.5px; position: relative; color: white;
-            text-shadow: 2px 2px 0px var(--accent-pink), -2px -2px 0px var(--accent-blue);
-            animation: glitch 3s infinite;
-        }
-        .glitch-title::before, .glitch-title::after {
-            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.8;
-        }
-        .glitch-title::before { color: var(--accent-blue); z-index: -1; animation: glitch-anim 0.4s infinite linear alternate-reverse; }
-        .glitch-title::after { color: var(--accent-pink); z-index: -2; animation: glitch-anim2 0.4s infinite linear alternate-reverse; }
-        @keyframes glitch { 0%, 90%, 100% { text-shadow: none; transform: none; } 92% { text-shadow: 2px 2px 0px var(--accent-pink), -2px -2px 0px var(--accent-blue); transform: translate(2px, 2px); } 94% { text-shadow: -2px -2px 0px var(--accent-pink), 2px 2px 0px var(--accent-blue); transform: translate(-2px, -2px); } }
-        @keyframes glitch-anim { 0% { clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); transform: translate(-2px); } 100% { clip-path: polygon(0 90%, 100% 90%, 100% 100%, 0 100%); transform: translate(2px); } }
-        @keyframes glitch-anim2 { 0% { clip-path: polygon(0 20%, 100% 20%, 100% 30%, 0 30%); transform: translate(2px); } 100% { clip-path: polygon(0 60%, 100% 60%, 100% 70%, 0 70%); transform: translate(-2px); } }
 
-        .logo-area span { font-size: 13px; color: var(--accent-purple); font-weight: 700; display: block; margin-bottom: 4px; letter-spacing: 1px; }
-        .my-profile-badge { width: 44px; height: 44px; border-radius: 50%; background: var(--glass-highlight); border: 2px solid var(--glass-border); display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 0 20px rgba(255,255,255,0.1); transition: 0.3s; }
-
-        /* 리얼 글래스 카드 (모바일 패딩 조정) */
-        .glass-card {
-            background: var(--glass-surface); backdrop-filter: blur(20px) saturate(130%); -webkit-backdrop-filter: blur(20px) saturate(130%);
-            border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-highlight);
-            border-radius: var(--radius-L); padding: 20px; margin: 0 16px 20px 16px; /* 좌우 마진 축소 */
-            box-shadow: 0 15px 35px -10px rgba(0,0,0,0.4); position: relative; overflow: hidden; transition: all 0.3s;
+        /* 레이아웃 컨테이너 */
+        .app-container {
+            display: flex; flex-direction: column; min-height: 100vh;
         }
-        .glass-card:hover { transform: translateY(-3px); box-shadow: 0 20px 45px -12px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.2); }
 
-        /* 탭 전환 & 스크롤 효과 */
-        .tab-section { display: none; } .tab-section.active { display: block; }
-        .scroll-reveal { opacity: 0; transform: translateY(30px); transition: 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .scroll-reveal.visible { opacity: 1; transform: translateY(0); }
-
-        /* [글쓰기 영역] */
-        .chip-group { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding: 4px; scrollbar-width: none; -ms-overflow-style: none; }
-        .chip-group::-webkit-scrollbar { display: none; }
-        .chip-radio { display: none; }
-        .chip-label {
-            padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 700;
-            background: rgba(255,255,255,0.05); color: var(--text-sub); border: 1px solid var(--glass-border);
-            cursor: pointer; transition: 0.3s; white-space: nowrap; display: flex; align-items: center; gap: 5px;
+        /* --- [헤더 & 사이드바 (PC용)] --- */
+        .top-bar {
+            padding: 20px 25px; display: flex; justify-content: space-between; align-items: flex-end;
+            background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(10px); border-bottom: 2px solid var(--cyber-border);
+            position: sticky; top: 0; z-index: 100;
         }
-        .chip-radio:checked + .chip-label { background: white; color: black; border-color: white; box-shadow: 0 0 20px rgba(255,255,255,0.3); transform: scale(1.03); }
-        .glass-input { width: 100%; background: transparent; border: none; outline: none; color: white; font-size: 16px; line-height: 1.5; resize: none; min-height: 70px; }
-        .glass-input::placeholder { color: rgba(255,255,255,0.3); }
-        .write-tools { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--glass-border); }
-        .icon-btn { font-size: 20px; color: var(--accent-blue); cursor: pointer; padding: 8px; transition: 0.2s; border-radius: 50%; background: rgba(73, 248, 200, 0.1); }
+        .logo-txt { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 24px; letter-spacing: 2px; color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); }
+        .logo-sub { font-size: 12px; color: var(--neon-pink); font-weight: 700; letter-spacing: 4px; display: block; margin-bottom: 5px; }
+        /* 타이핑 효과 커서 */
+        .typing-cursor::after { content: '|'; animation: blink 1s infinite; color: var(--neon-pink); }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .profile-status { display: flex; align-items: center; gap: 10px; }
+        .status-badge { font-size: 12px; padding: 4px 8px; background: var(--neon-purple); color: black; font-weight: 800; clip-path: var(--clip-btn); }
+        .header-profile-box {
+            width: 40px; height: 40px; background: var(--cyber-panel); border: 2px solid var(--neon-blue);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 80% 100%, 0 100%); /* 프로필도 각지게 */
+            box-shadow: 0 0 15px var(--neon-blue); transition: 0.3s;
+        }
+
+        /* 메인 콘텐츠 영역 */
+        .main-area { flex: 1; padding: 25px; padding-bottom: 100px; max-width: 100%; width: 100%; margin: 0 auto; position: relative; }
+
+        /* --- [핵심 UI: 사이버펑크 카드 & 버튼] --- */
+        /* 각진 모서리 + 네온 테두리 구현을 위한 래퍼 */
+        .cyber-card-wrapper {
+            position: relative; padding: 2px; /* 테두리 두께 */ margin-bottom: 25px; transition: 0.3s;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); /* 테두리 색상 */
+            clip-path: var(--clip-corner);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        .cyber-card {
+            background: var(--cyber-panel); padding: 25px; clip-path: var(--clip-corner); position: relative; overflow: hidden;
+        }
+        /* [홀로그램 호버 효과] */
+        .cyber-card-wrapper:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 229, 255, 0.3); }
+        .cyber-card-wrapper:hover .cyber-card::before {
+            content: 'DATA: LOADING...'; position: absolute; bottom: 10px; right: 10px; font-size: 10px; color: var(--neon-blue); opacity: 0.5;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 2px;
+        }
+        .cyber-card-wrapper:hover::after { /* 카드 위로 지나가는 빛 */
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 50%;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
+            transform: rotate(45deg); animation: hologramScan 2s linear infinite; pointer-events: none;
+        }
+        @keyframes hologramScan { from { top: -100%; } to { top: 200%; } }
+
+        /* 사이버 버튼 */
+        .btn-cyber {
+            background: var(--cyber-panel); color: var(--neon-blue); border: 2px solid var(--neon-blue);
+            padding: 12px 25px; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 14px;
+            clip-path: var(--clip-btn); cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            position: relative; overflow: hidden; box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+        .btn-cyber:hover { background: var(--neon-blue); color: var(--bg-dark); box-shadow: 0 0 25px var(--neon-blue); }
+        .btn-cyber:active { transform: scale(0.95); }
+        .btn-cyber.accent { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); }
+        .btn-cyber.accent:hover { background: var(--neon-pink); color: var(--bg-dark); box-shadow: 0 0 25px var(--neon-pink); }
+
+        /* --- [탭 전환 & 글리치 효과] --- */
+        .tab-content { display: none; } .tab-content.active { display: block; }
+        /* 글리치 애니메이션 클래스 */
+        .glitch-transition { animation: glitchAnim 0.4s linear; }
+        @keyframes glitchAnim {
+            0% { transform: translate(0); opacity: 1; filter: hue-rotate(0deg); }
+            20% { transform: translate(-5px, 2px); opacity: 0.8; filter: hue-rotate(90deg); }
+            40% { transform: translate(5px, -2px); opacity: 0.6; filter: hue-rotate(180deg); }
+            60% { transform: translate(-5px, 2px); opacity: 0.8; filter: hue-rotate(270deg); }
+            80% { transform: translate(5px, -2px); opacity: 1; filter: hue-rotate(360deg); }
+            100% { transform: translate(0); opacity: 1; filter: hue-rotate(0deg); }
+        }
+
+        /* --- [1] 피드 (Feed) --- */
+        .input-cyber {
+            width: 100%; background: rgba(0,0,0,0.3); border: 2px solid var(--cyber-border);
+            padding: 15px; color: var(--text-main); font-family: 'Rajdhani', sans-serif; font-size: 16px;
+            clip-path: var(--clip-btn); outline: none; transition: 0.3s;
+        }
+        .input-cyber:focus { border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 85, 0.3) inset; }
+        textarea.input-cyber { resize: none; min-height: 80px; }
+
+        .writer-select-box { display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .writer-radio { display: none; }
+        .writer-label {
+            padding: 10px 18px; background: rgba(0,0,0,0.3); border: 1px solid var(--cyber-border);
+            color: var(--text-sub); font-weight: 700; clip-path: var(--clip-btn); cursor: pointer; transition: 0.3s; white-space: nowrap;
+            display: flex; align-items: center; gap: 8px; font-size: 14px;
+        }
+        .writer-radio:checked + .writer-label {
+            background: var(--neon-blue); color: var(--bg-dark); border-color: var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
         
-        /* [NEW] 리플 이펙트가 적용될 버튼 클래스 */
-        .ripple-btn {
-            position: relative; overflow: hidden;
-            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
-            border: none; padding: 12px 26px; border-radius: 30px; color: white; font-weight: 800; font-size: 14px; cursor: pointer;
-            box-shadow: 0 4px 20px rgba(248, 73, 146, 0.4); transition: 0.3s;
-        }
-        .ripple-btn:active { transform: scale(0.97); }
-        /* 리플 애니메이션 */
-        .ripple-effect { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.4); transform: scale(0); animation: ripple 0.6s linear; pointer-events: none; }
-        @keyframes ripple { to { transform: scale(4); opacity: 0; } }
-
-        .img-preview { width: 100%; border-radius: 16px; margin-top: 12px; overflow: hidden; position: relative; display: none; border: 1px solid var(--glass-border); }
-        .img-preview img { width: 100%; display: block; }
-
-        /* 피드 레이아웃 (모바일 최적화) */
-        .feed-card { padding: 0; }
-        .feed-top { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
-        .feed-user { display: flex; align-items: center; gap: 12px; }
-        .u-img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); object-fit: cover; }
-        .u-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
-        .u-info span { font-size: 12px; color: var(--text-sub); }
-        .feed-content { padding: 0 20px 20px; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.9); white-space: pre-wrap; }
-        .feed-pic { width: 100%; display: block; }
-        .feed-action-bar { padding: 14px 20px; display: flex; gap: 10px; }
-        .act-btn { 
-            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); padding: 8px 14px; border-radius: 14px; color: var(--text-sub); font-size: 13px; font-weight: 700;
-            display: flex; align-items: center; gap: 6px; transition: 0.3s; cursor: pointer;
-        }
-        .act-btn.liked { background: rgba(248, 73, 146, 0.15); color: var(--accent-pink); border-color: var(--accent-pink); box-shadow: 0 0 15px rgba(248, 73, 146, 0.3); }
-        .act-btn.liked i { animation: heartBurst 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes heartBurst { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1); } }
-
+        .feed-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid var(--cyber-border); padding-bottom: 15px; }
+        .feed-user-info h4 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: var(--neon-blue); letter-spacing: 1px; }
+        .feed-user-info span { font-size: 12px; color: var(--text-sub); font-weight: 600; }
+        .feed-txt { font-size: 16px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; }
+        .feed-img-box { margin-bottom: 20px; clip-path: var(--clip-corner); border: 2px solid var(--cyber-border); }
+        .feed-img-box img { width: 100%; display: block; }
+        .feed-actions { display: flex; gap: 15px; }
+        
         /* 댓글 */
-        .comments-wrap { background: rgba(0,0,0,0.3); padding: 20px; display: none; border-top: 1px solid var(--glass-border); }
-        .comments-wrap.show { display: block; animation: fadeIn 0.3s; }
-        .cmt-row { display: flex; gap: 10px; margin-bottom: 14px; }
-        .cmt-img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid var(--glass-border); flex-shrink: 0; }
-        .cmt-bubble { background: rgba(255,255,255,0.07); padding: 10px 14px; border-radius: 4px 18px 18px 18px; flex: 1; }
-        .cmt-author { font-size: 12px; font-weight: 800; color: var(--accent-blue); margin-bottom: 3px; display: block; }
-        .cmt-input-row { display: flex; gap: 8px; margin-top: 16px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 22px; border: 1px solid var(--glass-border); }
-        .cmt-inp { flex: 1; background: transparent; border: none; padding: 8px 10px; color: white; font-size: 14px; outline: none; }
-        .cmt-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-blue); color: #000; border: none; display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; box-shadow: 0 0 10px rgba(73, 248, 200, 0.5); }
+        .cmt-section { margin-top: 20px; border-top: 1px solid var(--cyber-border); padding-top: 20px; display: none; }
+        .cmt-section.show { display: block; }
+        .cmt-item { background: rgba(255,255,255,0.05); padding: 12px; margin-bottom: 10px; clip-path: var(--clip-btn); border-left: 3px solid var(--neon-purple); }
+        .cmt-user { font-family: 'Orbitron', sans-serif; font-size: 12px; color: var(--neon-purple); margin-bottom: 4px; display: block; }
 
-        /* 캘린더 */
-        .cal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding: 0 8px; }
-        .cal-title { font-size: 24px; font-weight: 900; background: linear-gradient(to right, #fff, var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .cal-btn { background: rgba(255,255,255,0.05); width: 40px; height: 40px; border-radius: 12px; color: white; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s; }
+        /* --- [2] 캘린더 (Calendar) --- */
+        .cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .cal-month-title { font-family: 'Orbitron', sans-serif; font-size: 28px; color: var(--text-main); text-shadow: 0 0 10px var(--neon-pink); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-        .day-label { font-size: 12px; color: var(--text-sub); font-weight: 700; margin-bottom: 12px; letter-spacing: 1px; }
-        .date-cell { 
-            min-height: 70px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid var(--glass-border);
-            display: flex; flex-direction: column; align-items: center; padding: 8px 4px; gap: 5px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden;
+        .day-name { color: var(--neon-blue); font-weight: 700; margin-bottom: 10px; font-size: 14px; }
+        .date-box { 
+            min-height: 70px; background: rgba(0,0,0,0.3); border: 1px solid var(--cyber-border);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+            display: flex; flex-direction: column; align-items: center; padding: 8px 4px; cursor: pointer; transition: 0.3s;
         }
-        .date-cell span { font-size: 14px; font-weight: 700; z-index: 1; }
-        .date-cell.today { background: rgba(178, 73, 248, 0.15); border-color: var(--accent-purple); box-shadow: 0 0 20px rgba(178, 73, 248, 0.2) inset; }
-        .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-pink); box-shadow: 0 0 8px var(--accent-pink); z-index: 1; }
+        .date-box:hover { border-color: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink) inset; }
+        .date-box.today { border-color: var(--neon-blue); background: rgba(0, 229, 255, 0.1); }
+        .date-num { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 5px; }
+        .event-dot { width: 8px; height: 8px; background: var(--neon-pink); box-shadow: 0 0 10px var(--neon-pink); clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
 
-        /* 가족 (Bento Grid - 모바일 반응형 강화) */
-        .family-header-area { padding: 0 20px 20px; }
-        .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding: 0 16px; }
-        /* [중요] 화면이 좁을 때 1줄로 변경 */
-        @media (max-width: 380px) { .bento-grid { grid-template-columns: 1fr; } }
-
-        .bento-card {
-            background: var(--glass-surface); backdrop-filter: blur(20px); border: 1px solid var(--glass-border);
-            border-radius: 24px; padding: 24px 16px; text-align: center; position: relative;
-            display: flex; flex-direction: column; align-items: center; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+        /* --- [3] 가족 (Family Squad) --- */
+        .family-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        /* 모바일 1열 배치 */
+        @media (max-width: 450px) { .family-grid { grid-template-columns: 1fr; } }
+        .member-card-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .member-img-frame { 
+            width: 100px; height: 100px; margin-bottom: 20px; position: relative;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%); /* 8각형 */
+            background: var(--bg-dark); border: 2px solid var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue);
         }
-        .bento-card:hover { transform: translateY(-5px) scale(1.01); border-color: var(--glass-highlight); }
-        .bento-img { width: 80px; height: 80px; border-radius: 30%; object-fit: cover; margin-bottom: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 2px solid var(--glass-border); }
-        .bento-role { font-size: 18px; font-weight: 900; margin-bottom: 4px; background: linear-gradient(to right, #fff, #ccc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .bento-name { font-size: 13px; color: var(--text-sub); margin-bottom: 12px; }
-        .bento-badge { font-size: 12px; font-weight: 700; color: var(--bg-dark); background: var(--accent-blue); padding: 6px 12px; border-radius: 12px; box-shadow: 0 0 15px rgba(73, 248, 200, 0.4); }
-        .btn-del { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1); color: var(--text-sub); width: 28px; height: 28px; border-radius: 50%; border: none; opacity: 0; transition: 0.2s; cursor: pointer; }
-        .bento-card:hover .btn-del { opacity: 1; }
-        .add-card { border: 2px dashed rgba(255,255,255,0.2); background: transparent; box-shadow: none; color: rgba(255,255,255,0.4); cursor: pointer; min-height: 180px; justify-content: center; }
-
-        /* 플로팅 독 (모바일 최적화) */
-        .dock-nav {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: auto; max-width: 90%;
-            background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border); padding: 12px 28px; border-radius: 50px;
-            display: flex; gap: 30px; align-items: center; z-index: 100;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        .member-img-frame img { width: 100%; height: 100%; object-fit: cover; }
+        .member-role-txt { font-family: 'Orbitron', sans-serif; font-size: 20px; color: var(--neon-blue); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .member-name-txt { font-size: 14px; color: var(--text-sub); margin-bottom: 15px; font-weight: 600; }
+        .member-status-badge { 
+            background: rgba(255, 0, 85, 0.2); border: 1px solid var(--neon-pink); color: var(--neon-pink);
+            padding: 6px 12px; font-size: 12px; font-weight: 700; clip-path: var(--clip-btn);
         }
-        /* [NEW] 독 아이템에도 리플 효과 적용을 위한 클래스 */
-        .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; color: rgba(255,255,255,0.3); cursor: pointer; transition: 0.4s; overflow: hidden; padding: 5px; border-radius: 50%; }
-        .dock-item i { font-size: 24px; transition: 0.4s; }
-        .dock-item.active { color: white; transform: translateY(-4px); }
-        .dock-item.active i { color: var(--accent-blue); filter: drop-shadow(0 0 10px var(--accent-blue)); }
-        .dock-light { position: absolute; bottom: 0px; width: 20px; height: 4px; background: var(--accent-blue); filter: blur(8px); opacity: 0; transition: 0.4s; }
-        .dock-item.active .dock-light { opacity: 0.8; }
+        .add-member-btn-area { min-height: 220px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--cyber-border); color: var(--cyber-border); font-family: 'Orbitron', sans-serif; font-weight: 700; cursor: pointer; transition: 0.3s; clip-path: var(--clip-corner); background: rgba(0,0,0,0.2); }
+        .add-member-btn-area:hover { border-color: var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue) inset; }
 
-        /* 모달 */
-        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-box { background: #141417; width: 88%; max-width: 340px; padding: 28px; border-radius: 32px; border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,0.8); animation: modalPop 0.4s; }
-        @keyframes modalPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .inp-dark { width: 100%; background: #25252A; border: 1px solid #3A3A3E; padding: 14px; border-radius: 16px; color: white; font-size: 15px; outline: none; margin-bottom: 12px; }
-        .inp-dark:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(73, 248, 200, 0.2); }
-        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-m { flex: 1; padding: 14px; border-radius: 18px; font-weight: 800; border: none; cursor: pointer; font-size: 14px; }
-        .btn-cancel { background: #333; color: #aaa; }
-        .btn-ok { background: linear-gradient(to right, var(--accent-blue), var(--accent-purple)); color: #000; box-shadow: 0 5px 20px rgba(73, 248, 200, 0.3); }
+        /* --- [반응형 네비게이션: 모바일 컨트롤 패널 vs PC 사이드바] --- */
+        .control-panel {
+            position: fixed; bottom: 0; left: 0; width: 100%; z-index: 900;
+            background: rgba(10, 10, 15, 0.95); border-top: 3px solid var(--neon-blue);
+            box-shadow: 0 -10px 30px rgba(0, 229, 255, 0.2);
+            padding: 10px 15px; padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            display: flex; justify-content: space-around; align-items: center;
+        }
+        .control-btn {
+            display: flex; flex-direction: column; align-items: center; background: none; border: none;
+            color: var(--text-sub); cursor: pointer; transition: 0.3s; padding: 10px; flex: 1;
+            position: relative;
+        }
+        .control-btn i { font-size: 24px; margin-bottom: 5px; text-shadow: 0 0 5px currentColor; transition: 0.3s; }
+        .control-btn span { font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+        .control-btn.active { color: var(--neon-blue); }
+        .control-btn.active i { transform: translateY(-5px); filter: drop-shadow(0 0 8px var(--neon-blue)); }
+        /* 활성 버튼 하단 빛 효과 */
+        .control-btn.active::after {
+            content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 40%; height: 4px; background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue);
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+        }
 
+        /* --- [PC/태블릿 미디어 쿼리] --- */
         @media (min-width: 768px) {
-            .dock-nav { bottom: 50px; padding: 18px 50px; gap: 60px; }
-            .bento-grid { grid-template-columns: repeat(4, 1fr); }
-            .glass-card { margin: 0 20px 24px 20px; }
+            .app-container { flex-direction: row; }
+            /* PC에서 상단바 숨김 */
+            .top-bar { display: none; }
+            
+            /* 사이드바 네비게이션으로 변신 */
+            .control-panel {
+                position: sticky; top: 0; left: 0; bottom: auto;
+                width: 280px; height: 100vh; flex-direction: column; justify-content: flex-start;
+                border-top: none; border-right: 3px solid var(--neon-blue);
+                padding: 40px 20px; gap: 30px;
+            }
+            /* 사이드바 로고 영역 추가 */
+            .control-panel::before {
+                content: 'NEON CITY LOG.'; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 28px;
+                color: var(--neon-blue); text-shadow: 0 0 15px var(--neon-blue); margin-bottom: 30px; display: block; text-align: center;
+            }
+            .control-btn { flex-direction: row; gap: 15px; padding: 15px 25px; width: 100%; justify-content: flex-start; border: 1px solid transparent; clip-path: var(--clip-btn); }
+            .control-btn:hover { background: rgba(0, 229, 255, 0.1); border-color: var(--neon-blue); }
+            .control-btn.active { background: var(--neon-blue); color: var(--bg-dark); }
+            .control-btn.active i { transform: none; filter: none; color: var(--bg-dark); }
+            .control-btn.active::after { display: none; } /* PC에선 하단 빛 제거 */
+            .control-btn i { font-size: 28px; margin-bottom: 0; }
+            .control-btn span { font-size: 16px; }
+
+            .main-area { padding: 40px; max-width: 900px; }
+            .family-grid { grid-template-columns: repeat(3, 1fr); }
         }
+
+        /* --- [모달 (사이버펑크 팝업)] --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
+        .modal-pop {
+            width: 90%; max-width: 400px; position: relative; padding: 3px; /* 테두리 */
+            background: linear-gradient(45deg, var(--neon-pink), var(--neon-blue)); clip-path: var(--clip-corner);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); animation: hologramPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes hologramPop { from { transform: scale(0.8) perspective(500px) rotateX(20deg); opacity: 0; } to { transform: scale(1) perspective(500px) rotateX(0deg); opacity: 1; } }
+        .modal-content { background: var(--bg-dark); padding: 30px; clip-path: var(--clip-corner); }
+        .modal-tit { font-family: 'Orbitron', sans-serif; color: var(--neon-pink); text-align: center; font-size: 24px; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
     </style>
 </head>
 <body>
-    <div class="aurora-bg">
-        <div class="aurora-blob blob-1"></div>
-        <div class="aurora-blob blob-2"></div>
-        <div class="aurora-blob blob-3"></div>
-    </div>
-    <div class="star-bg"></div> <div class="noise-overlay"></div>
-
-    <div class="app-layout">
-        <header class="header">
+    <div class="app-container">
+        <header class="top-bar">
             <div class="logo-area">
-                <span>OUR UNIVERSE</span>
-                <h1 class="glitch-title" data-text="FAMILY LOG.">FAMILY LOG.</h1>
+                <span class="logo-sub typing-cursor">SYSTEM ONLINE.</span>
+                <h1 class="logo-txt">NEON FAM LOG</h1>
             </div>
-            <div class="my-profile-badge" id="headerProfile">
-                <i class="fa-solid fa-user" style="color:rgba(255,255,255,0.5); font-size:18px;"></i>
+            <div class="profile-status">
+                <span class="status-badge">LINKED</span>
+                <div class="header-profile-box" id="headerProfile">
+                    <i class="fa-solid fa-user-astronaut" style="color:var(--neon-blue);"></i>
+                </div>
             </div>
         </header>
-
-        <div id="feed" class="tab-section active">
-            <div class="glass-card scroll-reveal">
-                <div class="write-input-area">
-                    <div class="chip-group" id="writerChips">
-                        <div style="font-size:13px; color:var(--text-sub); padding:8px;">Loading...</div>
-                    </div>
-                    <textarea id="postContent" class="glass-input" placeholder="What's up? ✨"></textarea>
-                    <div id="imagePreviewBox" class="img-preview">
-                        <img id="imagePreview" src="">
-                        <button class="btn-x" onclick="clearImage()"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    <div class="write-tools">
-                        <label for="imageInput" class="icon-btn"><i class="fa-regular fa-image"></i></label>
-                        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
-                        <button id="btnPost" class="ripple-btn" onclick="addPost()">UPLOAD</button>
-                    </div>
-                </div>
-            </div>
-            <div id="loading-spinner" style="text-align:center; padding:30px; color:var(--text-sub); display:none;">
-                <i class="fa-solid fa-circle-notch fa-spin" style="font-size:24px; color:var(--accent-blue);"></i>
-            </div>
-            <div id="feed-container"></div>
-            <div style="text-align:center; padding-bottom:20px;">
-                <button id="btnLoadMore" style="background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); padding:10px 24px; border-radius:30px; color:white; font-weight:700; font-size:12px; cursor:pointer; display:none; transition:0.3s;" onclick="loadMorePosts()">MORE ✨</button>
-            </div>
-        </div>
-
-        <div id="calendar" class="tab-section">
-            <div class="glass-card scroll-reveal">
-                <div class="cal-head">
-                    <button class="cal-btn" onclick="moveMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-                    <h2 id="month-display" class="cal-title"></h2>
-                    <button class="cal-btn" onclick="moveMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
-                </div>
-                <div class="cal-grid" style="margin-bottom:12px;">
-                    <div class="day-label" style="color:var(--accent-pink)">S</div><div class="day-label">M</div><div class="day-label">T</div><div class="day-label">W</div><div class="day-label">T</div><div class="day-label">F</div><div class="day-label">S</div>
-                </div>
-                <div id="calendar-days" class="cal-grid"></div>
-            </div>
-        </div>
-
-        <div id="family" class="tab-section">
-            <div class="family-header-area">
-                <h2 style="font-size:24px; font-weight:900; letter-spacing:-0.5px;">Family Squad 🔥</h2>
-            </div>
-            <div id="family-container" class="bento-grid"></div>
-            <div id="noFamilyMsg" style="text-align:center; color:var(--text-sub); padding:50px; display:none; font-size:15px;">
-                Invite your crew! 🚀
-            </div>
-        </div>
-
-        <nav class="dock-nav">
-            <div class="dock-item active ripple-btn" onclick="changeTab('feed', this)">
-                <i class="fa-solid fa-bolt"></i><div class="dock-light"></div>
-            </div>
-            <div class="dock-item ripple-btn" onclick="changeTab('calendar', this)">
-                <i class="fa-regular fa-calendar"></i><div class="dock-light"></div>
-            </div>
-            <div class="dock-item ripple-btn" onclick="changeTab('family', this)">
-                <i class="fa-solid fa-face-smile-wink"></i><div class="dock-light"></div>
-            </div>
+        
+        <nav class="control-panel">
+            <button class="control-btn active" onclick="changeTab('feed', this)">
+                <i class="fa-solid fa-satellite-dish"></i><span>FEED_NET</span>
+            </button>
+            <button class="control-btn" onclick="changeTab('calendar', this)">
+                <i class="fa-solid fa-calendar-days"></i><span>CHRONO_LOG</span>
+            </button>
+            <button class="control-btn" onclick="changeTab('family', this)">
+                <i class="fa-solid fa-users-rays"></i><span>SQUAD_DB</span>
+            </button>
         </nav>
-    </div>
 
-    <div id="eventModal" class="modal-bg">
-        <div class="modal-box">
-            <h3 style="color:white; margin-bottom:20px; text-align:center; font-weight:900; font-size:20px;">PLAN MISSION</h3>
-            <p id="modalDateDisplay" style="text-align:center; color:var(--accent-blue); font-weight:800; margin-bottom:20px; font-size:16px;"></p>
-            <ul id="eventList" style="list-style:none; margin-bottom:20px; max-height:120px; overflow-y:auto; color:rgba(255,255,255,0.8); font-size:14px;"></ul>
-            <input type="hidden" id="eventDate">
-            <input type="text" id="eventTitle" class="inp-dark" placeholder="Mission details..." onkeydown="handleEnter(event)">
-            <div class="modal-btns">
-                <button class="btn-m btn-cancel" onclick="closeModal('eventModal')">CLOSE</button>
-                <button class="btn-m btn-ok ripple-btn" onclick="saveEvent()">CONFIRM</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="familyModal" class="modal-bg">
-        <div class="modal-box">
-            <h3 style="color:white; margin-bottom:24px; text-align:center; font-weight:900; font-size:20px;">NEW MEMBER</h3>
-            <div style="text-align:center; margin-bottom:24px;">
-                <label for="famImgInput" style="display:inline-block; cursor:pointer;">
-                    <div id="famImgPreview" style="width:100px; height:100px; border-radius:30%; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; overflow:hidden; border:2px dashed var(--accent-blue); box-shadow: 0 0 25px rgba(73, 248, 200, 0.2);">
-                        <i class="fa-solid fa-plus" style="color:var(--accent-blue); font-size:26px;"></i>
+        <main class="main-area" id="mainContent">
+            <div id="feed" class="tab-content active">
+                <div class="cyber-card-wrapper">
+                    <div class="cyber-card">
+                        <div style="margin-bottom:15px; color:var(--neon-blue); font-weight:700; font-size:14px;">// UPLOAD NEW DATA</div>
+                        <div class="writer-select-box" id="writerChips">
+                            <div style="padding:10px; color:var(--text-sub); font-size:14px;">INITIALIZING MEMBERS...</div>
+                        </div>
+                        <textarea id="postContent" class="input-cyber" placeholder="ENTER LOG DATA..."></textarea>
+                        <div id="imagePreviewBox" style="display:none; margin-top:15px; border:2px solid var(--neon-blue); clip-path:var(--clip-corner);">
+                            <img id="imagePreview" src="" style="width:100%; display:block;">
+                            <button onclick="clearImage()" style="width:100%; padding:10px; background:var(--neon-pink); border:none; color:white; font-weight:700; cursor:pointer;">REMOVE IMAGE [X]</button>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-top:20px; align-items:center;">
+                            <label for="imageInput" class="btn-cyber accent"><i class="fa-solid fa-camera"></i> IMG</label>
+                            <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+                            <button id="btnPost" class="btn-cyber" onclick="addPost()"><i class="fa-solid fa-upload"></i> TRANSMIT</button>
+                        </div>
                     </div>
-                </label>
-                <input type="file" id="famImgInput" accept="image/*" style="display:none;" onchange="handleFamImgSelect(event)">
+                </div>
+                
+                <div id="loading-spinner" style="text-align:center; padding:40px; display:none;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="font-size:30px; color:var(--neon-blue); filter:drop-shadow(0 0 10px var(--neon-blue));"></i>
+                </div>
+                <div id="feed-container"></div>
+                <div style="text-align:center; margin-top:30px;">
+                    <button id="btnLoadMore" class="btn-cyber accent" style="display:none; width:100%;" onclick="loadMorePosts()">LOAD MORE ARCHIVES <i class="fa-solid fa-chevron-down"></i></button>
+                </div>
             </div>
-            <input type="text" id="famRole" class="inp-dark" placeholder="Role (e.g. CAPTAIN)">
-            <input type="text" id="famName" class="inp-dark" placeholder="Name">
-            <input type="text" id="famDesc" class="inp-dark" placeholder="Status">
-            <div class="modal-btns">
-                <button class="btn-m btn-cancel" onclick="closeModal('familyModal')">CANCEL</button>
-                <button id="btnSaveFam" class="btn-m btn-ok ripple-btn" onclick="saveFamily()">JOIN</button>
+
+            <div id="calendar" class="tab-content">
+                <div class="cyber-card-wrapper" style="background:linear-gradient(135deg, var(--neon-pink), var(--neon-purple));">
+                    <div class="cyber-card">
+                        <div class="cal-nav">
+                            <button class="btn-cyber accent" style="padding:8px 15px;" onclick="moveMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                            <h2 id="month-display" class="cal-month-title"></h2>
+                            <button class="btn-cyber accent" style="padding:8px 15px;" onclick="moveMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div class="cal-grid" style="margin-bottom:15px;">
+                            <div class="day-name" style="color:var(--neon-pink)">SUN</div><div class="day-name">MON</div><div class="day-name">TUE</div><div class="day-name">WED</div><div class="day-name">THU</div><div class="day-name">FRI</div><div class="day-name">SAT</div>
+                        </div>
+                        <div id="calendar-days" class="cal-grid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="family" class="tab-content">
+                <div style="margin-bottom:25px; font-family:'Orbitron'; font-size:24px; color:var(--neon-blue); text-shadow:0 0 10px var(--neon-blue);">// ACTIVE UNITS</div>
+                <div id="family-container" class="family-grid"></div>
+                <div id="noFamilyMsg" style="text-align:center; padding:50px; color:var(--text-sub); font-size:18px; display:none;">NO UNITS FOUND. ADD NEW MEMBER.</div>
+            </div>
+        </main>
+    </div>
+
+    <div id="commonModal" class="modal-overlay">
+        <div class="modal-pop">
+            <div class="modal-content">
+                <h3 id="modalTitle" class="modal-tit"></h3>
+                <div id="modalBody"></div>
+                <div style="display:flex; gap:15px; margin-top:25px;">
+                    <button class="btn-cyber accent" style="flex:1;" onclick="closeModal()">CANCEL [ESC]</button>
+                    <button id="modalConfirmBtn" class="btn-cyber" style="flex:1;">CONFIRM [RET]</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",
-            authDomain: "our-family-home.firebaseapp.com",
-            projectId: "our-family-home",
-            storageBucket: "our-family-home.firebasestorage.app",
-            messagingSenderId: "446464856858",
-            appId: "1:446464856858:web:344f2c83aeda0ea9ae52a3"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const firebaseConfig = { apiKey: "AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio", authDomain: "our-family-home.firebaseapp.com", projectId: "our-family-home", storageBucket: "our-family-home.firebasestorage.app", messagingSenderId: "446464856858", appId: "1:446464856858:web:344f2c83aeda0ea9ae52a3" };
+        firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
-        /* [NEW] 리플 이펙트 JS */
-        function createRipple(event) {
-            const button = event.currentTarget;
-            const circle = document.createElement("span");
-            const diameter = Math.max(button.clientWidth, button.clientHeight);
-            const radius = diameter / 2;
-            circle.style.width = circle.style.height = `${diameter}px`;
-            circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
-            circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
-            circle.classList.add("ripple-effect");
-            const ripple = button.getElementsByClassName("ripple-effect")[0];
-            if (ripple) { ripple.remove(); }
-            button.appendChild(circle);
-        }
-        // 모든 리플 버튼에 이벤트 연결
-        document.addEventListener('DOMContentLoaded', () => {
-            const rippleButtons = document.querySelectorAll('.ripple-btn');
-            rippleButtons.forEach(btn => {
-                 // 독 아이템의 경우 클릭 이벤트가 상위 요소에 있어서 제외 (CSS로 처리)
-                 if(!btn.classList.contains('dock-item')) {
-                     btn.addEventListener('click', createRipple);
-                 }
-            });
-        });
+        /* 타이핑 효과 */
+        const typeText = (el, text, speed=100) => { el.innerText=""; let i=0; const timer=setInterval(()=>{ if(i<text.length){el.innerText+=text.charAt(i); i++;}else{clearInterval(timer);el.classList.remove('typing-cursor');} }, speed); }
+        document.addEventListener('DOMContentLoaded', ()=>{ typeText(document.querySelector('.logo-sub'), 'SYSTEM ONLINE.'); });
 
-        /* 스크롤 애니메이션 트리거 */
-        function triggerScrollReveal() {
-            const reveals = document.querySelectorAll('.scroll-reveal');
-            reveals.forEach(reveal => {
-                const windowHeight = window.innerHeight;
-                const elementTop = reveal.getBoundingClientRect().top;
-                if (elementTop < windowHeight - 30) reveal.classList.add('visible');
-            });
+        /* 탭 전환 & 글리치 효과 */
+        window.changeTab = (id, el) => {
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+            const target = document.getElementById(id); target.classList.add('active');
+            document.querySelectorAll('.control-btn').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active');
+            const main = document.getElementById('mainContent'); main.classList.remove('glitch-transition'); void main.offsetWidth; main.classList.add('glitch-transition'); // 글리치 리셋 및 실행
+            window.scrollTo(0,0);
         }
-        window.addEventListener('scroll', triggerScrollReveal);
-        setTimeout(triggerScrollReveal, 200);
 
         /* 이미지 압축 */
-        function compressImage(file, maxWidth, callback) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if(w > maxWidth) { h *= maxWidth/w; w = maxWidth; }
-                    canvas.width = w; canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, w, h);
-                    callback(canvas.toDataURL('image/jpeg', 0.7));
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
+        function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.7));};i.src=e.target.result;};r.readAsDataURL(f);}
 
         /* 데이터 관리 */
-        let familyData = [];
-        let selectedAuthorRole = "";
-        function loadFamily() {
-            db.collection("family_members").orderBy("timestamp").onSnapshot(snap => {
-                familyData = [];
-                const container = document.getElementById('family-container');
-                const chipGroup = document.getElementById('writerChips');
-                container.innerHTML = ""; chipGroup.innerHTML = "";
-                if(snap.empty) document.getElementById('noFamilyMsg').style.display='block';
-                else document.getElementById('noFamilyMsg').style.display='none';
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    familyData.push({ id: doc.id, ...d });
-                    const imgHtml = d.imageUrl ? `<img src="${d.imageUrl}" class="bento-img">` : `<div class="bento-img" style="background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:28px;color:rgba(255,255,255,0.3);"></i></div>`;
-                    container.innerHTML += `
-                    <div class="bento-card scroll-reveal">
-                        <button class="btn-del" onclick="delFamily('${doc.id}')"><i class="fa-solid fa-xmark"></i></button>
-                        ${imgHtml}
-                        <div class="bento-role">${d.role}</div>
-                        <div class="bento-name">${d.name || ''}</div>
-                        <div class="bento-badge">${d.desc || '#Ready'}</div>
-                    </div>`;
-                    const isChecked = selectedAuthorRole === d.role ? "checked" : "";
-                    chipGroup.innerHTML += `<input type="radio" name="author" id="chip-${doc.id}" class="chip-radio" value="${d.role}" data-id="${doc.id}" onchange="selectAuthor(this)" ${isChecked}><label for="chip-${doc.id}" class="chip-label"><i class="fa-solid fa-user-astronaut" style="font-size:12px;"></i> ${d.role}</label>`;
+        let familyData=[], selectedRole="";
+        function loadFamily(){
+            db.collection("family_members").orderBy("timestamp").onSnapshot(snap=>{
+                familyData=[]; const con=document.getElementById('family-container'); const chips=document.getElementById('writerChips');
+                con.innerHTML=""; chips.innerHTML=""; document.getElementById('noFamilyMsg').style.display=snap.empty?'block':'none';
+                snap.forEach(doc=>{
+                    const d=doc.data(); familyData.push({id:doc.id,...d});
+                    const imgHtml=d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<div style="width:100%;height:100%;background:#111;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user-secret" style="font-size:40px;color:#333;"></i></div>`;
+                    con.innerHTML+=`<div class="cyber-card-wrapper"><div class="cyber-card member-card-inner"><div class="member-img-frame">${imgHtml}</div><div class="member-role-txt">${d.role}</div><div class="member-name-txt">${d.name||'UNKNOWN'}</div><div class="member-status-badge">${d.desc||'NO DATA'}</div><button class="btn-cyber accent" style="position:absolute;top:10px;right:10px;padding:5px 10px;font-size:10px;" onclick="delFamily('${doc.id}')">DEL</button></div></div>`;
+                    chips.innerHTML+=`<input type="radio" name="auth" id="c-${doc.id}" class="writer-radio" value="${d.role}" data-id="${doc.id}" onchange="selAuth(this)" ${selectedRole===d.role?'checked':''}><label for="c-${doc.id}" class="writer-label"><i class="fa-solid fa-user-astronaut"></i> ${d.role}</label>`;
                 });
-                container.innerHTML += `<div class="bento-card add-card scroll-reveal" onclick="openFamilyModal()"><i class="fa-solid fa-plus" style="font-size:28px; margin-bottom:10px;"></i><span>ADD</span></div>`;
-                triggerScrollReveal();
+                con.innerHTML+=`<div class="cyber-card-wrapper add-member-btn-area" onclick="openFamModal()"><div style="text-align:center;"><i class="fa-solid fa-plus-hexagon" style="font-size:40px;margin-bottom:15px;color:var(--neon-blue);"></i><div>// ADD NEW UNIT</div></div></div>`;
+                if(selectedRole && !familyData.find(m=>m.role===selectedRole)) selectedRole=""; // 삭제된 경우 리셋
+                updateHeaderProf();
             });
         }
-        function selectAuthor(radio) {
-            selectedAuthorRole = radio.value;
-            const id = radio.getAttribute('data-id');
-            const mem = familyData.find(m => m.id === id);
-            const headerProfile = document.getElementById('headerProfile');
-            if(mem && mem.imageUrl) { headerProfile.innerHTML = `<img src="${mem.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`; headerProfile.style.border = "2px solid var(--accent-blue)"; headerProfile.style.boxShadow = "0 0 15px var(--accent-blue)"; }
-            else { headerProfile.innerHTML = `<i class="fa-solid fa-user" style="font-size:18px;"></i>`; headerProfile.style.border = "2px solid var(--glass-border)"; headerProfile.style.boxShadow = "none"; }
-        }
+        function selAuth(rd){ selectedRole=rd.value; updateHeaderProf(); }
+        function updateHeaderProf(){ const hp=document.getElementById('headerProfile'); if(!selectedRole){ hp.innerHTML=`<i class="fa-solid fa-user-astronaut" style="color:var(--neon-blue);"></i>`; return; } const mem=familyData.find(m=>m.role===selectedRole); if(mem&&mem.imageUrl) hp.innerHTML=`<img src="${mem.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`; else hp.innerHTML=`<i class="fa-solid fa-user-secret" style="color:var(--neon-pink);font-size:20px;"></i>`; }
 
         /* 피드 */
-        let feedImg = null;
-        function handleImageSelect(e) { if(e.target.files[0]) compressImage(e.target.files[0], 800, (data) => { feedImg = data; document.getElementById('imagePreview').src = data; document.getElementById('imagePreviewBox').style.display='block'; }); }
-        function clearImage() { feedImg=null; document.getElementById('imageInput').value=''; document.getElementById('imagePreviewBox').style.display='none'; }
-        function addPost() {
-            if(!selectedAuthorRole) return alert("Who are you? (작성자 선택)");
-            const content = document.getElementById('postContent').value;
-            const btn = document.getElementById('btnPost');
-            if(!content && !feedImg) return alert("Empty content!");
-            const mem = familyData.find(m => m.role === selectedAuthorRole);
-            btn.disabled=true; btn.innerText="SENDING...";
-            db.collection("family_posts").add({ author: selectedAuthorRole, authorImg: mem?mem.imageUrl:null, content: content, imageUrl: feedImg, likes:0, comments:[], timestamp: firebase.firestore.FieldValue.serverTimestamp() })
-            .then(()=>{ document.getElementById('postContent').value=''; clearImage(); btn.disabled=false; btn.innerText="UPLOAD"; window.scrollTo(0,0); })
-            .catch(e=>{ alert("Failed!"); btn.disabled=false; });
+        let feedImg=null, postLimit=5, unsubFeed=null;
+        function handleImageSelect(e){if(e.target.files[0])compressImage(e.target.files[0],800,d=>{feedImg=d;document.getElementById('imagePreview').src=d;document.getElementById('imagePreviewBox').style.display='block';});}
+        function clearImage(){feedImg=null;document.getElementById('imageInput').value='';document.getElementById('imagePreviewBox').style.display='none';}
+        function addPost(){
+            if(!selectedRole) return alert("ACCESS DENIED: SELECT ROLE.");
+            const txt=document.getElementById('postContent').value, btn=document.getElementById('btnPost');
+            if(!txt&&!feedImg) return alert("ERROR: NO DATA.");
+            const mem=familyData.find(m=>m.role===selectedRole); btn.disabled=true; btn.innerHTML="<i class='fa-solid fa-spinner fa-spin'></i> SENDING...";
+            db.collection("family_posts").add({author:selectedRole,authorImg:mem?mem.imageUrl:null,content:txt,imageUrl:feedImg,likes:0,comments:[],timestamp:firebase.firestore.FieldValue.serverTimestamp()})
+            .then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerHTML="<i class='fa-solid fa-upload'></i> TRANSMIT";})
+            .catch(()=>{alert("FAILED.");btn.disabled=false;btn.innerHTML="<i class='fa-solid fa-upload'></i> TRANSMIT";});
         }
-        let postLimit = 5; let unsubFeed = null;
-        function loadFeed() {
-            if(unsubFeed) unsubFeed(); document.getElementById('loading-spinner').style.display='block';
-            unsubFeed = db.collection("family_posts").orderBy("timestamp", "desc").limit(postLimit).onSnapshot(snap => {
-                document.getElementById('loading-spinner').style.display='none'; const con = document.getElementById('feed-container'); con.innerHTML = "";
-                snap.forEach(doc => renderPost(doc.id, doc.data(), con));
-                document.getElementById('btnLoadMore').style.display = snap.size>=postLimit ? 'inline-block' : 'none';
-                triggerScrollReveal();
+        function loadFeed(){
+            if(unsubFeed)unsubFeed(); document.getElementById('loading-spinner').style.display='block';
+            unsubFeed=db.collection("family_posts").orderBy("timestamp","desc").limit(postLimit).onSnapshot(snap=>{
+                document.getElementById('loading-spinner').style.display='none'; const con=document.getElementById('feed-container'); con.innerHTML="";
+                snap.forEach(doc=>renderPost(doc.id,doc.data(),con));
+                document.getElementById('btnLoadMore').style.display=snap.size>=postLimit?'inline-block':'none';
             });
         }
-        function loadMorePosts() { postLimit+=5; loadFeed(); }
-        function renderPost(id, d, con) {
-            const pImg = d.authorImg ? `<img src="${d.authorImg}" class="u-img">` : `<div class="u-img" style="background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user-astronaut" style="font-size:16px;color:rgba(255,255,255,0.4);"></i></div>`;
-            const contentImg = d.imageUrl ? `<div class="feed-pic-box"><img src="${d.imageUrl}" class="feed-pic"></div>` : '';
-            let cmts = "";
-            if(d.comments) d.comments.forEach(c => { const cImg = c.authorImg ? `<img src="${c.authorImg}" class="cmt-img">` : `<div class="cmt-img" style="background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:12px;color:#777;"></i></div>`; cmts += `<div class="cmt-row">${cImg}<div class="cmt-bubble"><span class="cmt-author">${c.author}</span>${c.text}</div></div>`; });
-            let cmtOpts = ""; familyData.forEach(m => { const sel = m.role === selectedAuthorRole ? "selected" : ""; cmtOpts += `<option value="${m.role}" ${sel}>${m.role}</option>`; });
-            
-            con.innerHTML += `
-            <div class="glass-card feed-card scroll-reveal">
-                <div class="feed-top">
-                    <div class="feed-user"><div class="u-img-box">${pImg}</div><div class="u-info"><h4>${d.author}</h4><span>${d.timestamp?new Date(d.timestamp.toDate()).toLocaleDateString():'Just now'}</span></div></div>
-                    <button class="feed-more" onclick="delPost('${id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-                </div>
-                <div class="feed-content">${d.content}</div> ${contentImg}
-                <div class="feed-action-bar">
-                    <button class="act-btn ${d.likes>0?'liked':''}" onclick="likePost('${id}',${d.likes})"><i class="${d.likes>0?'fa-solid':'fa-regular'} fa-heart"></i> ${d.likes||0}</button>
-                    <button class="act-btn" onclick="toggleCmt('${id}')"><i class="fa-regular fa-comment-dots"></i> Comment</button>
-                </div>
-                <div id="cmt-${id}" class="comments-wrap">
-                    <div style="margin-bottom:15px; max-height:200px; overflow-y:auto; padding-right:5px;">${cmts}</div>
-                    <div class="cmt-input-row">
-                        <select id="cAuth-${id}" style="background:rgba(255,255,255,0.1); color:var(--accent-blue); border:none; border-radius:10px; padding:0 8px; outline:none; font-weight:700;">${cmtOpts}</select>
-                        <input type="text" id="cInp-${id}" class="cmt-inp" placeholder="Add a comment..." onkeydown="if(event.key==='Enter') addCmt('${id}')">
-                        <button class="cmt-btn" onclick="addCmt('${id}')"><i class="fa-solid fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </div>`;
+        function loadMorePosts(){postLimit+=5;loadFeed();}
+        function renderPost(id,d,con){
+            const pImg=d.authorImg?`<img src="${d.authorImg}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user-secret" style="color:var(--neon-blue);"></i>`;
+            const cImg=d.imageUrl?`<div class="feed-img-box"><img src="${d.imageUrl}"></div>`:'';
+            let cmts=""; if(d.comments)d.comments.forEach(c=>cmts+=`<div class="cmt-item"><span class="cmt-user">// ${c.author}</span>${c.text}</div>`);
+            let copts=""; familyData.forEach(m=>{const s=m.role===selectedRole?'selected':'';copts+=`<option value="${m.role}" ${s}>${m.role}</option>`;});
+            con.innerHTML+=`
+            <div class="cyber-card-wrapper"><div class="cyber-card" style="padding:0;">
+                <div class="feed-header" style="margin:20px;margin-bottom:15px;"><div style="display:flex;gap:15px;align-items:center;"><div style="width:45px;height:45px;background:var(--bg-dark);border:2px solid var(--neon-blue);clip-path:var(--clip-btn);display:flex;align-items:center;justify-content:center;overflow:hidden;">${pImg}</div><div class="feed-user-info"><h4>${d.author}</h4><span>${d.timestamp?new Date(d.timestamp.toDate()).toLocaleDateString():'SYNCING...'}</span></div></div><button class="btn-cyber accent" style="padding:5px 10px;font-size:12px;" onclick="delPost('${id}')">DEL</button></div>
+                <div style="padding:0 20px 20px;"><div class="feed-txt">${d.content}</div>${cImg}
+                <div class="feed-actions"><button class="btn-cyber accent" style="flex:1;padding:10px;" onclick="likePost('${id}',${d.likes})"><i class="fa-solid fa-heart-pulse"></i> ${d.likes||0}</button><button class="btn-cyber" style="flex:1;padding:10px;" onclick="toggleCmt('${id}')"><i class="fa-solid fa-comment-dots"></i> CMT</button></div>
+                <div id="cmt-${id}" class="cmt-section"><div style="max-height:150px;overflow-y:auto;margin-bottom:15px;">${cmts}</div><div style="display:flex;gap:10px;"><select id="ca-${id}" class="input-cyber" style="width:auto;padding:10px;">${copts}</select><input type="text" id="ci-${id}" class="input-cyber" placeholder="ADD COMMENT..." onkeydown="if(event.key==='Enter')addCmt('${id}')"><button class="btn-cyber" style="padding:10px 15px;" onclick="addCmt('${id}')"><i class="fa-solid fa-paper-plane"></i></button></div></div></div>
+            </div></div>`;
         }
-        function likePost(id, n) { db.collection("family_posts").doc(id).update({likes: (n||0)+1}); }
-        function delPost(id) { if(confirm("Delete?")) db.collection("family_posts").doc(id).delete(); }
-        function toggleCmt(id) { document.getElementById(`cmt-${id}`).classList.toggle('show'); }
-        function addCmt(id) { const role = document.getElementById(`cAuth-${id}`).value; const txt = document.getElementById(`cInp-${id}`).value; if(!txt) return; const mem = familyData.find(m => m.role === role); db.collection("family_posts").doc(id).update({ comments: firebase.firestore.FieldValue.arrayUnion({ author:role, text:txt, authorImg: mem?mem.imageUrl:null }) }); }
+        function likePost(id,n){db.collection("family_posts").doc(id).update({likes:(n||0)+1});}
+        function delPost(id){if(confirm("DELETE DATA?"))db.collection("family_posts").doc(id).delete();}
+        function toggleCmt(id){document.getElementById(`cmt-${id}`).classList.toggle('show');}
+        function addCmt(id){const r=document.getElementById(`ca-${id}`).value,t=document.getElementById(`ci-${id}`).value; if(!t)return; const m=familyData.find(x=>x.role===r); db.collection("family_posts").doc(id).update({comments:firebase.firestore.FieldValue.arrayUnion({author:r,text:t,authorImg:m?m.imageUrl:null})});}
 
         /* 캘린더 */
-        let curDate = new Date(); let events = []; let curModalDate = null;
-        function loadCal() {
-            const y = curDate.getFullYear(); const m = curDate.getMonth(); document.getElementById('month-display').innerText = `${m+1}`;
-            const first = new Date(y, m, 1); const last = new Date(y, m+1, 0);
-            const con = document.getElementById('calendar-days'); con.innerHTML = "";
-            for(let i=0; i<first.getDay(); i++) con.innerHTML += `<div></div>`;
-            for(let i=1; i<=last.getDate(); i++) {
-                const dStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                const evs = events.filter(e => e.date === dStr);
-                const hasEv = evs.length > 0 ? `<div class="dot"></div>` : '';
-                const today = new Date().toDateString()===new Date(y,m,i).toDateString() ? 'today' : '';
-                con.innerHTML += `<div class="date-cell ${today}" onclick="openModal('${dStr}')"><span>${i}</span>${hasEv}</div>`;
+        let curDate=new Date(), events=[], curModDate=null;
+        function loadCal(){
+            const y=curDate.getFullYear(), m=curDate.getMonth(); document.getElementById('month-display').innerText=`${y}.${String(m+1).padStart(2,'0')}`;
+            const f=new Date(y,m,1), l=new Date(y,m+1,0), con=document.getElementById('calendar-days'); con.innerHTML="";
+            for(let i=0;i<f.getDay();i++)con.innerHTML+=`<div></div>`;
+            for(let i=1;i<=l.getDate();i++){
+                const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`, evs=events.filter(e=>e.date===dStr), hasEv=evs.length?`<div class="event-dot"></div>`:'', tdy=new Date().toDateString()===new Date(y,m,i).toDateString()?'today':'';
+                con.innerHTML+=`<div class="date-box ${tdy}" onclick="openEvModal('${dStr}')"><span class="date-num">${i}</span>${hasEv}</div>`;
             }
         }
-        function moveMonth(n) { curDate.setMonth(curDate.getMonth()+n); loadCal(); }
-        function openModal(d) { curModalDate=d; document.getElementById('eventDate').value=d; document.getElementById('modalDateDisplay').innerText=d; renderEvList(); document.getElementById('eventModal').style.display='flex'; }
-        function closeModal(id) { document.getElementById(id).style.display='none'; if(id==='familyModal') clearFamForm(); }
-        function renderEvList() {
-            const evs = events.filter(e => e.date === curModalDate); const list = document.getElementById('eventList'); list.innerHTML = "";
-            if(evs.length===0) list.innerHTML = "<li>No missions planned.</li>";
-            evs.forEach(e => list.innerHTML += `<li style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.1);"><span>${e.title}</span><i class="fa-solid fa-trash" style="color:#FF4992; cursor:pointer;" onclick="delEvent('${e.id}')"></i></li>`);
-        }
-        function handleEnter(e) { if(e.key==='Enter' && !e.isComposing) saveEvent(); }
-        function saveEvent() { const d = document.getElementById('eventDate').value; const t = document.getElementById('eventTitle').value; if(d&&t) db.collection("family_events").add({ date:d, title:t, timestamp: firebase.firestore.FieldValue.serverTimestamp() }).then(()=>{ closeModal('eventModal'); document.getElementById('eventTitle').value=''; }); }
-        function delEvent(id) { if(confirm("Abort?")) db.collection("family_events").doc(id).delete(); }
-        db.collection("family_events").orderBy("timestamp").onSnapshot(s => { events=[]; s.forEach(d => events.push({id:d.id, ...d.data()})); loadCal(); if(curModalDate) renderEvList(); });
+        function moveMonth(n){curDate.setMonth(curDate.getMonth()+n);loadCal();}
+        function openEvModal(d){curModDate=d; openModal("MISSION LOG: "+d, `<ul id="evList" style="list-style:none;margin-bottom:15px;color:var(--text-sub);"></ul><input type="text" id="evTitle" class="input-cyber" placeholder="NEW MISSION DETAILS" onkeydown="if(event.key==='Enter')saveEv()">`, saveEv); renderEvList();}
+        function renderEvList(){const el=document.getElementById('evList'), evs=events.filter(e=>e.date===curModDate); el.innerHTML=evs.length?"": "<li>NO MISSIONS.</li>"; evs.forEach(e=>el.innerHTML+=`<li style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--cyber-border);"><span>[★] ${e.title}</span><i class="fa-solid fa-trash-can" style="color:var(--neon-pink);cursor:pointer;" onclick="delEv('${e.id}')"></i></li>`);}
+        function saveEv(){const t=document.getElementById('evTitle').value; if(curModDate&&t) db.collection("family_events").add({date:curModDate,title:t,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{closeModal();});}
+        function delEv(id){if(confirm("ABORT MISSION?"))db.collection("family_events").doc(id).delete();}
+        db.collection("family_events").orderBy("timestamp").onSnapshot(s=>{events=[];s.forEach(d=>events.push({id:d.id,...d.data()}));loadCal();if(curModDate)renderEvList();});
 
-        /* 가족 추가 */
-        let famImg = null;
-        function openFamilyModal() { document.getElementById('familyModal').style.display='flex'; }
-        function handleFamImgSelect(e) { if(e.target.files[0]) compressImage(e.target.files[0], 500, (data) => { famImg = data; document.getElementById('famImgPreview').innerHTML = `<img src="${data}" style="width:100%; height:100%; object-fit:cover;">`; }); }
-        function clearFamForm() { famImg=null; document.getElementById('famImgInput').value=''; document.getElementById('famImgPreview').innerHTML = `<i class="fa-solid fa-plus" style="color:var(--accent-blue); font-size:26px;"></i>`; document.getElementById('famRole').value=''; document.getElementById('famName').value=''; document.getElementById('famDesc').value=''; }
-        function saveFamily() {
-            const role = document.getElementById('famRole').value; const name = document.getElementById('famName').value; const desc = document.getElementById('famDesc').value; const btn = document.getElementById('btnSaveFam');
-            if(!role) return alert("Role needed!"); btn.disabled=true; btn.innerText="JOINING...";
-            db.collection("family_members").add({ role:role, name:name, desc:desc, imageUrl:famImg, timestamp: firebase.firestore.FieldValue.serverTimestamp() })
-            .then(()=>{ closeModal('familyModal'); btn.disabled=false; btn.innerText="JOIN"; }).catch(e=>{ alert("Error!"); btn.disabled=false; });
+        /* 모달 공통 */
+        let famImg=null;
+        function openModal(tit, bodyHtml, confirmFn){ document.getElementById('commonModal').style.display='flex'; document.getElementById('modalTitle').innerText=tit; document.getElementById('modalBody').innerHTML=bodyHtml; document.getElementById('modalConfirmBtn').onclick=confirmFn; }
+        function closeModal(){ document.getElementById('commonModal').style.display='none'; famImg=null; curModDate=null; }
+        
+        /* 가족 추가 모달 */
+        function openFamModal(){
+            const html = `<div style="text-align:center;margin-bottom:20px;"><label for="fi" style="display:inline-block;cursor:pointer;"><div id="fp" style="width:100px;height:100px;background:var(--cyber-panel);border:2px dashed var(--neon-blue);clip-path:var(--clip-corner);display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-plus" style="color:var(--neon-blue);font-size:30px;"></i></div></label><input type="file" id="fi" accept="image/*" style="display:none;" onchange="hFamImg(event)"></div><input type="text" id="fr" class="input-cyber" placeholder="ROLE (EX: COMMANDER)" style="margin-bottom:10px;"><input type="text" id="fn" class="input-cyber" placeholder="NAME (OPTIONAL)" style="margin-bottom:10px;"><input type="text" id="fd" class="input-cyber" placeholder="STATUS MESSAGE">`;
+            openModal("// REGISTER NEW UNIT", html, saveFam);
         }
-        function delFamily(id) { if(confirm("Delete?")) db.collection("family_members").doc(id).delete(); }
+        function hFamImg(e){if(e.target.files[0])compressImage(e.target.files[0],500,d=>{famImg=d;document.getElementById('fp').innerHTML=`<img src="${d}" style="width:100%;height:100%;object-fit:cover;">`;});}
+        function saveFam(){
+            const r=document.getElementById('fr').value, n=document.getElementById('fn').value, d=document.getElementById('fd').value;
+            if(!r)return alert("ROLE REQUIRED."); const btn=document.getElementById('modalConfirmBtn'); btn.disabled=true; btn.innerText="REGISTERING...";
+            db.collection("family_members").add({role:r,name:n,desc:d,imageUrl:famImg,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{closeModal();}).catch(()=>{alert("ERROR.");btn.disabled=false;});
+        }
+        function delFamily(id){if(confirm("REMOVE UNIT DATA?"))db.collection("family_members").doc(id).delete();}
 
-        /* 탭 */
-        window.changeTab = function(id, el) {
-            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active');
-            document.querySelectorAll('.dock-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active');
-            triggerScrollReveal(); window.scrollTo(0,0);
-        }
         loadFeed(); loadCal(); loadFamily();
     </script>
 </body>
