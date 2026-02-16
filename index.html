@@ -11,12 +11,12 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        /* [디자인 시스템: Soft & Modern] */
+        /* [디자인 시스템] */
         :root {
             --primary: #FF6B6B; --primary-light: #FFF0F0;
             --bg-color: #F8F9FA; --white: #FFFFFF;
             --text-dark: #343A40; --text-gray: #868E96;
-            --radius-L: 28px; --radius-M: 20px; --radius-S: 12px;
+            --radius-M: 20px;
             --shadow-soft: 0 10px 30px rgba(0,0,0,0.04);
             --shadow-pop: 0 10px 25px rgba(255, 107, 107, 0.25);
         }
@@ -27,118 +27,106 @@
         .app-layout { display: flex; min-height: 100vh; flex-direction: column; }
         .main-content { flex: 1; padding: 20px; padding-bottom: 100px; max-width: 600px; margin: 0 auto; width: 100%; }
 
-        /* 헤더 */
-        .mobile-header { 
-            background: rgba(248, 249, 250, 0.85); padding: 15px 20px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            position: sticky; top: 0; z-index: 99; backdrop-filter: blur(12px);
-        }
-        .brand { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-dark); display: flex; align-items: center; gap: 6px; }
+        /* 헤더 & 네비 */
+        .mobile-header { background: rgba(248, 249, 250, 0.95); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 99; backdrop-filter: blur(12px); }
+        .brand { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-dark); }
         .brand span { color: var(--primary); }
+        .main-nav { background: rgba(255, 255, 255, 0.95); z-index: 100; position: fixed; bottom: 0; width: 100%; height: 75px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.03); border-radius: 24px 24px 0 0; box-shadow: 0 -10px 30px rgba(0,0,0,0.03); padding-bottom: env(safe-area-inset-bottom); backdrop-filter: blur(15px); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ADB5BD; cursor: pointer; width: 100%; transition: all 0.3s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-4px); }
+        .nav-item i { font-size: 1.4rem; margin-bottom: 5px; }
+        .nav-item span { font-size: 0.75rem; font-weight: 600; }
 
-        /* 네비게이션 */
-        .main-nav { 
-            background: rgba(255, 255, 255, 0.9); z-index: 100; position: fixed; bottom: 0; 
-            width: 100%; height: 75px; display: flex; justify-content: space-around; align-items: center; 
-            border-top: 1px solid rgba(0,0,0,0.03); border-radius: 24px 24px 0 0; 
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.03); padding-bottom: env(safe-area-inset-bottom); backdrop-filter: blur(15px);
-        }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ADB5BD; cursor: pointer; width: 100%; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-        .nav-item i { font-size: 1.4rem; margin-bottom: 5px; transition: transform 0.3s; }
-        .nav-item span { font-size: 0.75rem; font-weight: 600; opacity: 0.8; }
-        .nav-item.active { color: var(--primary); }
-        .nav-item.active i { transform: translateY(-4px); }
-        .nav-logo { display: none; }
-
-        /* 공통 UI 카드 */
+        /* 공통 UI */
         .card { background: var(--white); border-radius: var(--radius-M); padding: 24px; box-shadow: var(--shadow-soft); margin-bottom: 24px; border: 1px solid #ffffff; }
-        .tab-section { display: none; animation: slideUp 0.5s cubic-bezier(0.19, 1, 0.22, 1); }
+        .tab-section { display: none; animation: fadeIn 0.4s ease; }
         .tab-section.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- [탭 1] 피드 스타일 --- */
+        /* [NEW] 깨지지 않는 프로필 스타일 */
+        .profile-fallback {
+            width: 100%; height: 100%;
+            background-color: #F1F3F5;
+            color: #ADB5BD;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 1.2rem;
+            border-radius: 50%;
+        }
+        .avatar-frame {
+            width: 40px; height: 40px; 
+            border-radius: 50%; overflow: hidden; 
+            flex-shrink: 0; margin-right: 12px;
+            border: 1px solid #F1F3F5;
+        }
+        .avatar-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 글쓰기 */
         .write-wrapper { display: flex; gap: 12px; margin-bottom: 15px; }
-        /* 글쓰기용 아바타 (미리보기) */
-        .write-avatar-preview { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #F1F3F5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
-        
-        .write-box { background: #F8F9FA; border-radius: var(--radius-M); padding: 15px; width: 100%; transition: 0.2s; border: 1px solid transparent; }
-        .write-box:focus-within { background: #fff; border-color: var(--primary-light); box-shadow: 0 0 0 4px var(--primary-light); }
-        
-        .selector { border: none; background: transparent; font-weight: 700; font-size: 0.9rem; color: var(--text-dark); outline: none; cursor: pointer; margin-bottom: 8px; display: block; width: 100%; }
-        .textarea { width: 100%; border: none; background: transparent; outline: none; resize: none; font-size: 1rem; min-height: 50px; font-family: inherit; }
-        .textarea::placeholder { color: #CED4DA; }
-
-        .img-preview { position: relative; display: none; margin: 15px 0; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-soft); }
+        .write-box { background: #F8F9FA; border-radius: var(--radius-M); padding: 15px; width: 100%; transition: 0.2s; }
+        .write-box:focus-within { background: #fff; box-shadow: 0 0 0 3px var(--primary-light); }
+        .selector { border: none; background: transparent; font-weight: 700; font-size: 0.9rem; width: 100%; margin-bottom: 8px; outline: none; cursor: pointer; }
+        .textarea { width: 100%; border: none; background: transparent; outline: none; resize: none; font-size: 1rem; min-height: 50px; }
+        .img-preview { position: relative; display: none; margin: 15px 0; border-radius: 16px; overflow: hidden; }
         .img-preview img { width: 100%; max-height: 400px; object-fit: cover; display: block; }
-        .btn-x { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; }
-
+        .btn-x { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+        
         .action-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-        .btn-photo { display: flex; align-items: center; gap: 8px; color: var(--primary); font-weight: 600; cursor: pointer; padding: 10px 16px; border-radius: 30px; font-size: 0.9rem; background: var(--primary-light); transition: 0.2s; }
-        .btn-photo:hover { background: #FFE3E3; }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 12px 28px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.95rem; box-shadow: var(--shadow-pop); transition: 0.2s; }
-        .btn-main:active { transform: scale(0.96); }
+        .btn-photo { display: flex; align-items: center; gap: 8px; color: var(--primary); font-weight: 600; cursor: pointer; padding: 10px 16px; border-radius: 30px; font-size: 0.9rem; background: var(--primary-light); }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 12px 28px; border-radius: 30px; font-weight: 700; cursor: pointer; font-size: 0.95rem; box-shadow: var(--shadow-pop); }
         .btn-main:disabled { background: #E9ECEF; color: #ADB5BD; box-shadow: none; cursor: not-allowed; }
 
+        /* 게시물 */
         .post-head { display: flex; align-items: center; margin-bottom: 16px; }
-        .post-avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid #eee; }
-        .post-meta h4 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-dark); }
-        .post-meta span { font-size: 0.75rem; color: #ADB5BD; margin-top: 2px; display: block; }
-        .post-menu { margin-left: auto; border: none; background: none; color: #DEE2E6; cursor: pointer; padding: 5px; }
+        .post-meta h4 { margin: 0; font-size: 1rem; font-weight: 700; }
+        .post-meta span { font-size: 0.75rem; color: #ADB5BD; display: block; margin-top: 2px; }
+        .post-menu { margin-left: auto; border: none; background: none; color: #DEE2E6; cursor: pointer; }
         .post-body { font-size: 1rem; line-height: 1.6; color: #495057; margin-bottom: 16px; white-space: pre-wrap; }
         .post-img { width: 100%; border-radius: 16px; margin-bottom: 16px; display: block; }
-        
         .post-foot { display: flex; gap: 15px; padding-top: 12px; border-top: 1px solid #F8F9FA; }
-        .interaction-btn { display: flex; align-items: center; gap: 6px; color: #868E96; font-size: 0.9rem; cursor: pointer; border: none; background: none; font-weight: 600; transition: 0.2s; }
-        .interaction-btn:hover { color: var(--text-dark); }
+        .interaction-btn { display: flex; align-items: center; gap: 6px; color: #868E96; font-size: 0.9rem; cursor: pointer; border: none; background: none; font-weight: 600; }
         .interaction-btn.liked { color: var(--primary); }
 
         /* 댓글 */
         .comments-box { display: none; background: #F8F9FA; margin: 0 -24px -24px -24px; padding: 20px; border-top: 1px solid #F1F3F5; border-radius: 0 0 var(--radius-M) var(--radius-M); }
-        .comments-box.show { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .comments-box.show { display: block; }
         .cmt-item { display: flex; gap: 10px; margin-bottom: 12px; }
-        .cmt-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+        .cmt-avatar-frame { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
         .cmt-bubble { background: #fff; padding: 10px 14px; border-radius: 4px 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); max-width: 85%; }
-        .cmt-name { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); margin-bottom: 3px; display: block; }
-        .cmt-text { font-size: 0.9rem; color: #495057; line-height: 1.4; }
+        .cmt-name { font-size: 0.8rem; font-weight: 700; display: block; margin-bottom: 3px; }
+        .cmt-text { font-size: 0.9rem; line-height: 1.4; }
         .cmt-form { display: flex; gap: 8px; align-items: center; position: relative; margin-top: 15px; }
-        .cmt-sel { position: absolute; left: 5px; border: none; background: transparent; font-size: 0.8rem; font-weight: bold; color: #868E96; cursor: pointer; outline: none; z-index: 2; padding: 5px; max-width: 80px; }
-        .cmt-inp { width: 100%; padding: 12px 45px 12px 90px; border: 1px solid #E9ECEF; border-radius: 24px; outline: none; font-size: 0.9rem; background: #fff; transition: 0.2s; }
-        .cmt-inp:focus { border-color: var(--primary); }
+        .cmt-sel { position: absolute; left: 5px; border: none; background: transparent; font-size: 0.8rem; font-weight: bold; color: #868E96; outline: none; z-index: 2; padding: 5px; max-width: 80px; }
+        .cmt-inp { width: 100%; padding: 12px 45px 12px 90px; border: 1px solid #E9ECEF; border-radius: 24px; outline: none; font-size: 0.9rem; background: #fff; }
         .cmt-send { position: absolute; right: 5px; border: none; background: var(--primary); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* --- [탭 2] 캘린더 --- */
+        /* 캘린더 */
         .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .cal-nav-btn { background: white; border: 1px solid #E9ECEF; width: 36px; height: 36px; border-radius: 12px; font-size: 1rem; cursor: pointer; color: #868E96; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .cal-nav-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .cal-nav-btn { background: white; border: 1px solid #E9ECEF; width: 36px; height: 36px; border-radius: 12px; font-size: 1rem; cursor: pointer; color: #868E96; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         .day-head { font-weight: 700; color: #CED4DA; font-size: 0.75rem; margin-bottom: 10px; }
-        .day-cell { min-height: 85px; padding: 8px; border-radius: 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; border: 1px solid transparent; transition: 0.2s; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
-        .day-cell:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); border-color: var(--primary-light); }
+        .day-cell { min-height: 85px; padding: 8px; border-radius: 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; border: 1px solid transparent; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
         .day-cell.today { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); }
         .evt-badge { font-size: 0.65rem; background: var(--primary); color: white; padding: 4px 8px; border-radius: 8px; width: 100%; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
-        /* --- [탭 3] 가족 소개 --- */
+        /* 가족 소개 */
         .family-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .family-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-        .profile-card { background: white; border-radius: var(--radius-M); padding: 25px 15px; text-align: center; box-shadow: var(--shadow-soft); transition: 0.3s; cursor: pointer; border: 1px solid transparent; position: relative; }
-        .profile-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); border-color: var(--primary-light); }
-        .profile-img-wrap { width: 90px; height: 90px; margin: 0 auto 15px; position: relative; }
-        .profile-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid #F8F9FA; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .profile-role { font-size: 1.1rem; font-weight: 800; color: var(--text-dark); margin-bottom: 4px; }
+        .profile-card { background: white; border-radius: var(--radius-M); padding: 25px 15px; text-align: center; box-shadow: var(--shadow-soft); position: relative; border: 1px solid transparent; }
+        .profile-img-wrap { width: 90px; height: 90px; margin: 0 auto 15px; border-radius: 50%; overflow: hidden; border: 4px solid #F8F9FA; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .profile-img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-role { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
         .profile-name { font-size: 0.85rem; color: #ADB5BD; font-weight: 600; margin-bottom: 12px; }
-        .profile-desc { font-size: 0.85rem; color: #495057; background: #F8F9FA; padding: 8px 12px; border-radius: 12px; display: inline-block; width: 100%; word-break: keep-all; line-height: 1.4; }
-        .btn-del-profile { position: absolute; top: 10px; right: 10px; border: none; background: #FFF0F0; color: #FF6B6B; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.2s; }
-        .profile-card:hover .btn-del-profile { opacity: 1; }
+        .profile-desc { font-size: 0.85rem; color: #495057; background: #F8F9FA; padding: 8px 12px; border-radius: 12px; display: inline-block; word-break: keep-all; }
+        .btn-del-profile { position: absolute; top: 10px; right: 10px; border: none; background: #FFF0F0; color: #FF6B6B; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* 모달 공통 */
+        /* 모달 */
         .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 200; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-cont { background: white; width: 90%; max-width: 380px; padding: 30px; border-radius: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); animation: zoomIn 0.3s cubic-bezier(0.19, 1, 0.22, 1); }
-        .modal-tit { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; color: var(--text-dark); text-align: center; }
+        .modal-cont { background: white; width: 90%; max-width: 380px; padding: 30px; border-radius: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); animation: zoomIn 0.3s; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-tit { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; text-align: center; }
         .inp-group { margin-bottom: 15px; }
         .inp-label { display: block; font-size: 0.85rem; font-weight: 700; color: #868E96; margin-bottom: 8px; }
-        .inp-field { width: 100%; padding: 14px; border: 2px solid #F1F3F5; border-radius: 16px; outline: none; font-size: 0.95rem; transition: 0.2s; background: #FCFCFC; }
-        .inp-field:focus { border-color: var(--primary); background: white; }
+        .inp-field { width: 100%; padding: 14px; border: 2px solid #F1F3F5; border-radius: 16px; outline: none; font-size: 0.95rem; background: #FCFCFC; }
         .modal-btns { display: flex; gap: 10px; margin-top: 25px; }
         .btn-cancel { flex: 1; padding: 14px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; background: #F1F3F5; color: #868E96; }
         .btn-confirm { flex: 1; padding: 14px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; background: var(--primary); color: white; box-shadow: var(--shadow-pop); }
@@ -146,7 +134,7 @@
         @media (min-width: 768px) {
             .app-layout { flex-direction: row; }
             .mobile-header { display: none; }
-            .main-nav { position: sticky; top: 0; width: var(--nav-width-pc); height: 100vh; flex-direction: column; justify-content: flex-start; padding: 60px 30px; border-radius: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.02); }
+            .main-nav { position: sticky; top: 0; width: 280px; height: 100vh; flex-direction: column; justify-content: flex-start; padding: 60px 30px; border-radius: 0; box-shadow: 10px 0 30px rgba(0,0,0,0.03); }
             .nav-item { flex-direction: row; height: auto; padding: 18px 24px; margin-bottom: 12px; border-radius: 20px; justify-content: flex-start; font-size: 1.1rem; }
             .nav-item i { margin: 0 18px 0 0; font-size: 1.4rem; }
             .main-content { padding: 60px 50px; max-width: 900px; }
@@ -159,7 +147,9 @@
     <div class="app-layout">
         <header class="mobile-header">
             <div class="brand"><span>Happy</span>Family</div>
-            <div class="avatar-sm" style="background:var(--primary); color:white; font-size:0.9rem;">😎</div>
+            <div class="avatar-frame" style="border:none;">
+                <div class="profile-fallback" style="background:var(--primary); color:white; font-size:0.9rem;">😎</div>
+            </div>
         </header>
 
         <nav class="main-nav">
@@ -170,15 +160,16 @@
         </nav>
 
         <main class="main-content">
-            
             <div id="feed" class="tab-section active">
                 <div class="card">
                     <div class="write-wrapper">
-                        <img id="currentWriterAvatar" src="https://via.placeholder.com/40/F1F3F5/868E96?text=?" class="write-avatar-preview">
+                        <div class="avatar-frame" id="currentWriterAvatarBox">
+                            <div class="profile-fallback">?</div>
+                        </div>
                         <div class="write-box">
                             <select id="postAuthor" class="selector" onchange="updateWriterAvatar()">
                                 <option value="" disabled selected>누가 쓰나요?</option>
-                                </select>
+                            </select>
                             <textarea id="postContent" class="textarea" placeholder="오늘 무슨 일이 있었나요?"></textarea>
                         </div>
                     </div>
@@ -237,8 +228,7 @@
 
     <div id="familyModal" class="modal-bg">
         <div class="modal-cont">
-            <h3 class="modal-tit">👨‍👩‍👧‍👦 가족 멤버 추가</h3>
-            
+            <h3 class="modal-tit">👨‍👩‍👧‍👦 멤버 추가</h3>
             <div style="text-align:center; margin-bottom:20px;">
                 <label for="famImgInput" style="display:inline-block; position:relative; cursor:pointer;">
                     <div id="famImgPreview" style="width:100px; height:100px; border-radius:50%; background:#F1F3F5; display:flex; align-items:center; justify-content:center; overflow:hidden; border:4px solid white; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
@@ -248,24 +238,10 @@
                 </label>
                 <input type="file" id="famImgInput" accept="image/*" style="display:none;" onchange="handleFamImgSelect(event)">
             </div>
-
-            <div class="inp-group">
-                <label class="inp-label">역할 (예: 아빠, 첫째)</label>
-                <input type="text" id="famRole" class="inp-field" placeholder="역할 입력">
-            </div>
-            <div class="inp-group">
-                <label class="inp-label">이름 (선택)</label>
-                <input type="text" id="famName" class="inp-field" placeholder="이름 입력">
-            </div>
-            <div class="inp-group">
-                <label class="inp-label">한 마디 소개</label>
-                <input type="text" id="famDesc" class="inp-field" placeholder="예: 우리집 리모컨 담당">
-            </div>
-
-            <div class="modal-btns">
-                <button class="btn-cancel" onclick="closeModal('familyModal')">취소</button>
-                <button id="btnSaveFam" class="btn-confirm" onclick="saveFamily()">추가하기</button>
-            </div>
+            <div class="inp-group"><label class="inp-label">역할 (예: 아빠)</label><input type="text" id="famRole" class="inp-field" placeholder="역할 입력"></div>
+            <div class="inp-group"><label class="inp-label">이름 (선택)</label><input type="text" id="famName" class="inp-field" placeholder="이름 입력"></div>
+            <div class="inp-group"><label class="inp-label">한 마디</label><input type="text" id="famDesc" class="inp-field" placeholder="소개 입력"></div>
+            <div class="modal-btns"><button class="btn-cancel" onclick="closeModal('familyModal')">취소</button><button id="btnSaveFam" class="btn-confirm" onclick="saveFamily()">추가하기</button></div>
         </div>
     </div>
 
@@ -281,7 +257,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        /* --- [공통] 이미지 압축 --- */
+        /* 이미지 압축 */
         function compressImage(file, maxWidth, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -300,62 +276,52 @@
             reader.readAsDataURL(file);
         }
 
-        /* --- [1] 가족 멤버 불러오기 & 선택창 연동 (핵심!) --- */
+        /* --- 가족 멤버 & 선택창 --- */
         let familyMembersData = [];
-
         function loadFamilyForSelect() {
             db.collection("family_members").orderBy("timestamp").onSnapshot(snap => {
-                familyMembersData = []; // 초기화
+                familyMembersData = [];
                 const postSelect = document.getElementById('postAuthor');
-                
-                // 기존 옵션 유지하고 싶으면 백업, 여기선 "누가 쓰나요?"만 남김
                 let optionsHtml = '<option value="" disabled selected>누가 쓰나요?</option>';
-
                 snap.forEach(doc => {
                     const d = doc.data();
-                    const displayName = d.name ? `${d.role} (${d.name})` : d.role;
-                    // 데이터 저장 (나중에 이미지 찾기 위해)
                     familyMembersData.push({ id: doc.id, ...d });
-                    // 옵션 추가 (value에 역할 저장, data-id에 문서 ID 저장)
+                    const displayName = d.name ? `${d.role} (${d.name})` : d.role;
                     optionsHtml += `<option value="${d.role}" data-id="${doc.id}">${displayName}</option>`;
                 });
-                
                 postSelect.innerHTML = optionsHtml;
-                updateWriterAvatar(); // 초기화 시 아바타 업데이트
+                updateWriterAvatar();
             });
         }
 
-        // 선택 변경 시 아바타 업데이트 함수
         function updateWriterAvatar() {
             const select = document.getElementById('postAuthor');
             const selectedOption = select.options[select.selectedIndex];
             const memberId = selectedOption.getAttribute('data-id');
-            const avatarImg = document.getElementById('currentWriterAvatar');
+            const avatarBox = document.getElementById('currentWriterAvatarBox');
 
             if (memberId) {
                 const member = familyMembersData.find(m => m.id === memberId);
                 if (member && member.imageUrl) {
-                    avatarImg.src = member.imageUrl;
+                    avatarBox.innerHTML = `<img src="${member.imageUrl}">`;
                 } else {
-                    avatarImg.src = "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
+                    avatarBox.innerHTML = `<div class="profile-fallback">?</div>`;
                 }
             } else {
-                avatarImg.src = "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
+                avatarBox.innerHTML = `<div class="profile-fallback">?</div>`;
             }
         }
 
-        // 댓글창 선택 옵션 생성 함수
-        function getCommentOptions(postId) {
+        function getCommentOptions() {
             let options = "";
             familyMembersData.forEach(m => {
-                const displayName = m.name ? `${m.role}` : m.role;
+                const displayName = m.name ? m.role : m.role;
                 options += `<option value="${m.role}" data-id="${m.id}">${displayName}</option>`;
             });
             return options || "<option>가족을 등록하세요</option>";
         }
 
-
-        /* --- [2] 피드 기능 --- */
+        /* --- 피드 --- */
         let feedImgString = null;
         function handleImageSelect(e) {
             if(e.target.files[0]) compressImage(e.target.files[0], 600, (data) => {
@@ -371,25 +337,16 @@
             const role = select.value;
             const content = document.getElementById('postContent').value;
             const btn = document.getElementById('btnPost');
-            
             if(!role) return alert("누가 쓰는지 선택해주세요!");
             if(!content && !feedImgString) return alert("내용을 입력하세요!");
 
-            // 선택된 멤버의 정보 찾기 (이미지 저장용)
             const memberId = select.options[select.selectedIndex].getAttribute('data-id');
             const member = familyMembersData.find(m => m.id === memberId);
             const authorImg = member ? member.imageUrl : null;
 
             btn.disabled = true; btn.innerText = "저장 중...";
-            
             db.collection("family_posts").add({
-                author: role, 
-                authorImg: authorImg, // 작성자 프사 저장
-                content: content, 
-                imageUrl: feedImgString, 
-                likes: 0, 
-                comments: [], 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                author: role, authorImg: authorImg, content: content, imageUrl: feedImgString, likes: 0, comments: [], timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 document.getElementById('postContent').value=''; clearImage(); btn.disabled=false; btn.innerText="게시하기";
             }).catch(e => { alert("오류!"); btn.disabled=false; });
@@ -409,28 +366,30 @@
         function loadMorePosts() { postLimit += 5; loadFeed(); }
 
         function renderPost(id, data, con) {
-            // 작성자 프사가 있으면 쓰고, 없으면 기본값
-            const profileSrc = data.authorImg ? data.authorImg : "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
+            // [수정됨] 프사 없으면 깨지는 이미지 대신 회색 물음표 표시
+            const profileHtml = data.authorImg 
+                ? `<img src="${data.authorImg}">` 
+                : `<div class="profile-fallback">?</div>`;
             
             const imgHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="post-img">` : '';
             
             let cmtHtml = "";
             if(data.comments) data.comments.forEach(c => {
-                const cImg = c.authorImg ? c.authorImg : "https://via.placeholder.com/30/F1F3F5/868E96?text=?";
+                const cImgHtml = c.authorImg 
+                    ? `<img src="${c.authorImg}" style="width:100%;height:100%;object-fit:cover;">` 
+                    : `<div class="profile-fallback" style="font-size:0.7rem;">?</div>`;
                 cmtHtml += `
                 <div class="cmt-item">
-                    <img src="${cImg}" class="cmt-avatar">
+                    <div class="cmt-avatar-frame">${cImgHtml}</div>
                     <div class="cmt-bubble"><span class="cmt-name">${c.author}</span><span class="cmt-text">${c.text}</span></div>
                 </div>`;
             });
-            
-            // 댓글 작성창에도 가족 리스트 연동
-            const cmtOptions = getCommentOptions(id);
+            const cmtOptions = getCommentOptions();
 
             con.innerHTML += `
             <div class="card">
                 <div class="post-head">
-                    <img src="${profileSrc}" class="post-avatar-img">
+                    <div class="avatar-frame">${profileHtml}</div>
                     <div class="post-meta"><h4>${data.author}</h4><span>${data.timestamp?new Date(data.timestamp.toDate()).toLocaleDateString():''}</span></div>
                     <button class="post-menu" onclick="delPost('${id}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -453,23 +412,17 @@
         function likePost(id, n) { db.collection("family_posts").doc(id).update({likes: (n||0)+1}); }
         function delPost(id) { if(confirm("삭제?")) db.collection("family_posts").doc(id).delete(); }
         function toggleCmt(id) { document.getElementById(`cmt-${id}`).classList.toggle('show'); }
-        
         function addCmt(id) {
             const select = document.getElementById(`cAuth-${id}`);
             const role = select.value;
             const text = document.getElementById(`cInp-${id}`).value;
-            
-            // 댓글 작성자 프사 찾기
             const memberId = select.options[select.selectedIndex].getAttribute('data-id');
             const member = familyMembersData.find(m => m.id === memberId);
             const authorImg = member ? member.imageUrl : null;
-
-            if(text) db.collection("family_posts").doc(id).update({ 
-                comments: firebase.firestore.FieldValue.arrayUnion({ author:role, text:text, authorImg: authorImg }) 
-            });
+            if(text) db.collection("family_posts").doc(id).update({ comments: firebase.firestore.FieldValue.arrayUnion({ author:role, text:text, authorImg: authorImg }) });
         }
 
-        /* --- [3] 캘린더 기능 --- */
+        /* --- 캘린더 --- */
         let curDate = new Date(); let events = []; let curModalDate = null;
         function loadCal() {
             const y = curDate.getFullYear(); const m = curDate.getMonth();
@@ -500,7 +453,7 @@
         function delEvent(id) { if(confirm("삭제?")) db.collection("family_events").doc(id).delete(); }
         db.collection("family_events").orderBy("timestamp").onSnapshot(s => { events=[]; s.forEach(d => events.push({id:d.id, ...d.data()})); loadCal(); if(curModalDate) renderEvList(); });
 
-        /* --- [4] 가족 소개 기능 --- */
+        /* --- 가족 --- */
         let famImgString = null;
         function openFamilyModal() { document.getElementById('familyModal').style.display='flex'; }
         function handleFamImgSelect(e) {
@@ -520,19 +473,17 @@
             const name = document.getElementById('famName').value;
             const desc = document.getElementById('famDesc').value;
             const btn = document.getElementById('btnSaveFam');
-            
             if(!role) return alert("역할(아빠, 엄마 등)을 입력해주세요!");
             btn.disabled = true; btn.innerText = "저장 중...";
-
             db.collection("family_members").add({
                 role: role, name: name, desc: desc, imageUrl: famImgString, timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 closeModal('familyModal'); btn.disabled=false; btn.innerText="추가하기";
             }).catch(e => { alert("오류!"); btn.disabled=false; });
         }
-        function delFamily(id) { if(confirm("이 멤버를 삭제할까요?")) db.collection("family_members").doc(id).delete(); }
+        function delFamily(id) { if(confirm("삭제할까요?")) db.collection("family_members").doc(id).delete(); }
 
-        // 가족 리스트 불러오기 (여기서 선택창 데이터도 로드됨)
+        // [수정됨] 가족 리스트 렌더링 (깨짐 방지)
         db.collection("family_members").orderBy("timestamp").onSnapshot(snap => {
             const con = document.getElementById('family-container'); con.innerHTML = "";
             if(snap.empty) document.getElementById('noFamilyMsg').style.display='block';
@@ -540,22 +491,23 @@
                 document.getElementById('noFamilyMsg').style.display='none';
                 snap.forEach(doc => {
                     const d = doc.data();
-                    const img = d.imageUrl ? d.imageUrl : "https://via.placeholder.com/150/F1F3F5/868E96?text=?";
+                    const imgHtml = d.imageUrl 
+                        ? `<img src="${d.imageUrl}" class="profile-img">`
+                        : `<div class="profile-fallback" style="font-size:2rem;"><i class="fa-solid fa-question"></i></div>`;
+                    
                     con.innerHTML += `
                     <div class="profile-card">
                         <button class="btn-del-profile" onclick="delFamily('${doc.id}')"><i class="fa-solid fa-xmark"></i></button>
-                        <div class="profile-img-wrap"><img src="${img}" class="profile-img"></div>
+                        <div class="profile-img-wrap">${imgHtml}</div>
                         <div class="profile-role">${d.role}</div>
                         <div class="profile-name">${d.name || ''}</div>
                         <div class="profile-desc">${d.desc || '반가워요!'}</div>
                     </div>`;
                 });
             }
-            // ★ 중요: 가족 목록이 바뀔 때마다 선택창도 다시 로드
             loadFamilyForSelect();
         });
 
-        /* --- 탭 전환 --- */
         window.changeTab = function(id, el) {
             document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
