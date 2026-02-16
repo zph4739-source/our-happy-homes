@@ -58,11 +58,13 @@
 
         /* --- [탭 1] 피드 스타일 --- */
         .write-wrapper { display: flex; gap: 12px; margin-bottom: 15px; }
-        .avatar-sm { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; flex-shrink: 0; background: #F1F3F5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        /* 글쓰기용 아바타 (미리보기) */
+        .write-avatar-preview { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #F1F3F5; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        
         .write-box { background: #F8F9FA; border-radius: var(--radius-M); padding: 15px; width: 100%; transition: 0.2s; border: 1px solid transparent; }
         .write-box:focus-within { background: #fff; border-color: var(--primary-light); box-shadow: 0 0 0 4px var(--primary-light); }
         
-        .selector { border: none; background: transparent; font-weight: 700; font-size: 0.9rem; color: var(--text-dark); outline: none; cursor: pointer; margin-bottom: 8px; display: block; }
+        .selector { border: none; background: transparent; font-weight: 700; font-size: 0.9rem; color: var(--text-dark); outline: none; cursor: pointer; margin-bottom: 8px; display: block; width: 100%; }
         .textarea { width: 100%; border: none; background: transparent; outline: none; resize: none; font-size: 1rem; min-height: 50px; font-family: inherit; }
         .textarea::placeholder { color: #CED4DA; }
 
@@ -78,6 +80,7 @@
         .btn-main:disabled { background: #E9ECEF; color: #ADB5BD; box-shadow: none; cursor: not-allowed; }
 
         .post-head { display: flex; align-items: center; margin-bottom: 16px; }
+        .post-avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid #eee; }
         .post-meta h4 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-dark); }
         .post-meta span { font-size: 0.75rem; color: #ADB5BD; margin-top: 2px; display: block; }
         .post-menu { margin-left: auto; border: none; background: none; color: #DEE2E6; cursor: pointer; padding: 5px; }
@@ -94,12 +97,13 @@
         .comments-box.show { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .cmt-item { display: flex; gap: 10px; margin-bottom: 12px; }
+        .cmt-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
         .cmt-bubble { background: #fff; padding: 10px 14px; border-radius: 4px 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); max-width: 85%; }
         .cmt-name { font-size: 0.8rem; font-weight: 700; color: var(--text-dark); margin-bottom: 3px; display: block; }
         .cmt-text { font-size: 0.9rem; color: #495057; line-height: 1.4; }
         .cmt-form { display: flex; gap: 8px; align-items: center; position: relative; margin-top: 15px; }
-        .cmt-sel { position: absolute; left: 5px; border: none; background: transparent; font-size: 0.8rem; font-weight: bold; color: #868E96; cursor: pointer; outline: none; z-index: 2; padding: 5px; }
-        .cmt-inp { width: 100%; padding: 12px 45px 12px 60px; border: 1px solid #E9ECEF; border-radius: 24px; outline: none; font-size: 0.9rem; background: #fff; transition: 0.2s; }
+        .cmt-sel { position: absolute; left: 5px; border: none; background: transparent; font-size: 0.8rem; font-weight: bold; color: #868E96; cursor: pointer; outline: none; z-index: 2; padding: 5px; max-width: 80px; }
+        .cmt-inp { width: 100%; padding: 12px 45px 12px 90px; border: 1px solid #E9ECEF; border-radius: 24px; outline: none; font-size: 0.9rem; background: #fff; transition: 0.2s; }
         .cmt-inp:focus { border-color: var(--primary); }
         .cmt-send { position: absolute; right: 5px; border: none; background: var(--primary); color: white; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
@@ -114,7 +118,7 @@
         .day-cell.today { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); }
         .evt-badge { font-size: 0.65rem; background: var(--primary); color: white; padding: 4px 8px; border-radius: 8px; width: 100%; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
-        /* --- [탭 3] 가족 소개 (NEW) --- */
+        /* --- [탭 3] 가족 소개 --- */
         .family-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .family-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
         .profile-card { background: white; border-radius: var(--radius-M); padding: 25px 15px; text-align: center; box-shadow: var(--shadow-soft); transition: 0.3s; cursor: pointer; border: 1px solid transparent; position: relative; }
@@ -170,11 +174,11 @@
             <div id="feed" class="tab-section active">
                 <div class="card">
                     <div class="write-wrapper">
-                        <div class="avatar-sm" style="background:#FFD166;">📝</div>
+                        <img id="currentWriterAvatar" src="https://via.placeholder.com/40/F1F3F5/868E96?text=?" class="write-avatar-preview">
                         <div class="write-box">
-                            <select id="postAuthor" class="selector">
-                                <option value="아빠">👨 아빠</option><option value="엄마">👩 엄마</option><option value="첫째">👧 첫째</option><option value="막내">👦 막내</option>
-                            </select>
+                            <select id="postAuthor" class="selector" onchange="updateWriterAvatar()">
+                                <option value="" disabled selected>누가 쓰나요?</option>
+                                </select>
                             <textarea id="postContent" class="textarea" placeholder="오늘 무슨 일이 있었나요?"></textarea>
                         </div>
                     </div>
@@ -289,14 +293,69 @@
                     canvas.width = w; canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
-                    callback(canvas.toDataURL('image/jpeg', 0.6)); // 60% quality
+                    callback(canvas.toDataURL('image/jpeg', 0.6));
                 };
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
         }
 
-        /* --- [1] 피드 기능 --- */
+        /* --- [1] 가족 멤버 불러오기 & 선택창 연동 (핵심!) --- */
+        let familyMembersData = [];
+
+        function loadFamilyForSelect() {
+            db.collection("family_members").orderBy("timestamp").onSnapshot(snap => {
+                familyMembersData = []; // 초기화
+                const postSelect = document.getElementById('postAuthor');
+                
+                // 기존 옵션 유지하고 싶으면 백업, 여기선 "누가 쓰나요?"만 남김
+                let optionsHtml = '<option value="" disabled selected>누가 쓰나요?</option>';
+
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const displayName = d.name ? `${d.role} (${d.name})` : d.role;
+                    // 데이터 저장 (나중에 이미지 찾기 위해)
+                    familyMembersData.push({ id: doc.id, ...d });
+                    // 옵션 추가 (value에 역할 저장, data-id에 문서 ID 저장)
+                    optionsHtml += `<option value="${d.role}" data-id="${doc.id}">${displayName}</option>`;
+                });
+                
+                postSelect.innerHTML = optionsHtml;
+                updateWriterAvatar(); // 초기화 시 아바타 업데이트
+            });
+        }
+
+        // 선택 변경 시 아바타 업데이트 함수
+        function updateWriterAvatar() {
+            const select = document.getElementById('postAuthor');
+            const selectedOption = select.options[select.selectedIndex];
+            const memberId = selectedOption.getAttribute('data-id');
+            const avatarImg = document.getElementById('currentWriterAvatar');
+
+            if (memberId) {
+                const member = familyMembersData.find(m => m.id === memberId);
+                if (member && member.imageUrl) {
+                    avatarImg.src = member.imageUrl;
+                } else {
+                    avatarImg.src = `https://via.placeholder.com/40/FFD166/ffffff?text=${member ? member.role[0] : '?'}`;
+                }
+            } else {
+                avatarImg.src = "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
+            }
+        }
+
+        // 댓글창 선택 옵션 생성 함수
+        function getCommentOptions(postId) {
+            let options = "";
+            familyMembersData.forEach(m => {
+                const displayName = m.name ? `${m.role}` : m.role;
+                options += `<option value="${m.role}" data-id="${m.id}">${displayName}</option>`;
+            });
+            return options || "<option>가족을 등록하세요</option>";
+        }
+
+
+        /* --- [2] 피드 기능 --- */
         let feedImgString = null;
         function handleImageSelect(e) {
             if(e.target.files[0]) compressImage(e.target.files[0], 600, (data) => {
@@ -308,13 +367,29 @@
         function clearImage() { feedImgString = null; document.getElementById('imageInput').value = ''; document.getElementById('imagePreviewBox').style.display = 'none'; }
 
         function addPost() {
-            const author = document.getElementById('postAuthor').value;
+            const select = document.getElementById('postAuthor');
+            const role = select.value;
             const content = document.getElementById('postContent').value;
             const btn = document.getElementById('btnPost');
+            
+            if(!role) return alert("누가 쓰는지 선택해주세요!");
             if(!content && !feedImgString) return alert("내용을 입력하세요!");
+
+            // 선택된 멤버의 정보 찾기 (이미지 저장용)
+            const memberId = select.options[select.selectedIndex].getAttribute('data-id');
+            const member = familyMembersData.find(m => m.id === memberId);
+            const authorImg = member ? member.imageUrl : null;
+
             btn.disabled = true; btn.innerText = "저장 중...";
+            
             db.collection("family_posts").add({
-                author: author, content: content, imageUrl: feedImgString, likes: 0, comments: [], timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                author: role, 
+                authorImg: authorImg, // 작성자 프사 저장
+                content: content, 
+                imageUrl: feedImgString, 
+                likes: 0, 
+                comments: [], 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 document.getElementById('postContent').value=''; clearImage(); btn.disabled=false; btn.innerText="게시하기";
             }).catch(e => { alert("오류!"); btn.disabled=false; });
@@ -334,16 +409,28 @@
         function loadMorePosts() { postLimit += 5; loadFeed(); }
 
         function renderPost(id, data, con) {
-            let color = "#FFD166"; let icon = "😐";
-            if(data.author==="아빠"){color="#E0E0E0"; icon="👨";} else if(data.author==="엄마"){color="#FFC8DD"; icon="👩";} else if(data.author==="막내"){color="#BDE0FE"; icon="👦";}
-            const imgHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="post-img">` : '';
-            let cmtHtml = "";
-            if(data.comments) data.comments.forEach(c => cmtHtml += `<div class="cmt-item"><div class="avatar-sm" style="width:28px;height:28px;font-size:0.8rem;background:#F1F3F5;">${c.icon||'😐'}</div><div class="cmt-bubble"><span class="cmt-name">${c.author}</span><span class="cmt-text">${c.text}</span></div></div>`);
+            // 작성자 프사가 있으면 쓰고, 없으면 기본값
+            const profileSrc = data.authorImg ? data.authorImg : `https://via.placeholder.com/40/FFD166/ffffff?text=${data.author[0]}`;
             
+            const imgHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="post-img">` : '';
+            
+            let cmtHtml = "";
+            if(data.comments) data.comments.forEach(c => {
+                const cImg = c.authorImg ? c.authorImg : `https://via.placeholder.com/30/F1F3F5/868E96?text=${c.author[0]}`;
+                cmtHtml += `
+                <div class="cmt-item">
+                    <img src="${cImg}" class="cmt-avatar">
+                    <div class="cmt-bubble"><span class="cmt-name">${c.author}</span><span class="cmt-text">${c.text}</span></div>
+                </div>`;
+            });
+            
+            // 댓글 작성창에도 가족 리스트 연동
+            const cmtOptions = getCommentOptions(id);
+
             con.innerHTML += `
             <div class="card">
                 <div class="post-head">
-                    <div class="avatar-sm" style="background:${color}; margin-right:12px;">${icon}</div>
+                    <img src="${profileSrc}" class="post-avatar-img">
                     <div class="post-meta"><h4>${data.author}</h4><span>${data.timestamp?new Date(data.timestamp.toDate()).toLocaleDateString():''}</span></div>
                     <button class="post-menu" onclick="delPost('${id}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -356,7 +443,7 @@
                 <div id="cmt-${id}" class="comments-box">
                     <div style="margin-bottom:15px;">${cmtHtml}</div>
                     <div class="cmt-form">
-                        <select id="cAuth-${id}" class="cmt-sel"><option>아빠</option><option>엄마</option><option>막내</option></select>
+                        <select id="cAuth-${id}" class="cmt-sel">${cmtOptions}</select>
                         <input type="text" id="cInp-${id}" class="cmt-inp" placeholder="댓글..." onkeydown="if(event.key==='Enter') addCmt('${id}')">
                         <button class="cmt-send" onclick="addCmt('${id}')"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
@@ -366,13 +453,23 @@
         function likePost(id, n) { db.collection("family_posts").doc(id).update({likes: (n||0)+1}); }
         function delPost(id) { if(confirm("삭제?")) db.collection("family_posts").doc(id).delete(); }
         function toggleCmt(id) { document.getElementById(`cmt-${id}`).classList.toggle('show'); }
+        
         function addCmt(id) {
-            const a = document.getElementById(`cAuth-${id}`).value; const t = document.getElementById(`cInp-${id}`).value;
-            let icon = "😐"; if(a==="아빠") icon="👨"; else if(a==="엄마") icon="👩"; else if(a==="막내") icon="👦";
-            if(t) db.collection("family_posts").doc(id).update({ comments: firebase.firestore.FieldValue.arrayUnion({ author:a, text:t, icon:icon }) });
+            const select = document.getElementById(`cAuth-${id}`);
+            const role = select.value;
+            const text = document.getElementById(`cInp-${id}`).value;
+            
+            // 댓글 작성자 프사 찾기
+            const memberId = select.options[select.selectedIndex].getAttribute('data-id');
+            const member = familyMembersData.find(m => m.id === memberId);
+            const authorImg = member ? member.imageUrl : null;
+
+            if(text) db.collection("family_posts").doc(id).update({ 
+                comments: firebase.firestore.FieldValue.arrayUnion({ author:role, text:text, authorImg: authorImg }) 
+            });
         }
 
-        /* --- [2] 캘린더 기능 --- */
+        /* --- [3] 캘린더 기능 --- */
         let curDate = new Date(); let events = []; let curModalDate = null;
         function loadCal() {
             const y = curDate.getFullYear(); const m = curDate.getMonth();
@@ -403,7 +500,7 @@
         function delEvent(id) { if(confirm("삭제?")) db.collection("family_events").doc(id).delete(); }
         db.collection("family_events").orderBy("timestamp").onSnapshot(s => { events=[]; s.forEach(d => events.push({id:d.id, ...d.data()})); loadCal(); if(curModalDate) renderEvList(); });
 
-        /* --- [3] 가족 소개 기능 (NEW) --- */
+        /* --- [4] 가족 소개 기능 --- */
         let famImgString = null;
         function openFamilyModal() { document.getElementById('familyModal').style.display='flex'; }
         function handleFamImgSelect(e) {
@@ -435,7 +532,7 @@
         }
         function delFamily(id) { if(confirm("이 멤버를 삭제할까요?")) db.collection("family_members").doc(id).delete(); }
 
-        // 가족 리스트 불러오기
+        // 가족 리스트 불러오기 (여기서 선택창 데이터도 로드됨)
         db.collection("family_members").orderBy("timestamp").onSnapshot(snap => {
             const con = document.getElementById('family-container'); con.innerHTML = "";
             if(snap.empty) document.getElementById('noFamilyMsg').style.display='block';
@@ -454,6 +551,8 @@
                     </div>`;
                 });
             }
+            // ★ 중요: 가족 목록이 바뀔 때마다 선택창도 다시 로드
+            loadFamilyForSelect();
         });
 
         /* --- 탭 전환 --- */
