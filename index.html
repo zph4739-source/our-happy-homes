@@ -337,7 +337,7 @@
                 if (member && member.imageUrl) {
                     avatarImg.src = member.imageUrl;
                 } else {
-                    avatarImg.src = `https://via.placeholder.com/40/FFD166/ffffff?text=${member ? member.role[0] : '?'}`;
+                    avatarImg.src = "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
                 }
             } else {
                 avatarImg.src = "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
@@ -410,13 +410,13 @@
 
         function renderPost(id, data, con) {
             // 작성자 프사가 있으면 쓰고, 없으면 기본값
-            const profileSrc = data.authorImg ? data.authorImg : `https://via.placeholder.com/40/FFD166/ffffff?text=${data.author[0]}`;
+            const profileSrc = data.authorImg ? data.authorImg : "https://via.placeholder.com/40/F1F3F5/868E96?text=?";
             
             const imgHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="post-img">` : '';
             
             let cmtHtml = "";
             if(data.comments) data.comments.forEach(c => {
-                const cImg = c.authorImg ? c.authorImg : `https://via.placeholder.com/30/F1F3F5/868E96?text=${c.author[0]}`;
+                const cImg = c.authorImg ? c.authorImg : "https://via.placeholder.com/30/F1F3F5/868E96?text=?";
                 cmtHtml += `
                 <div class="cmt-item">
                     <img src="${cImg}" class="cmt-avatar">
@@ -540,7 +540,7 @@
                 document.getElementById('noFamilyMsg').style.display='none';
                 snap.forEach(doc => {
                     const d = doc.data();
-                    const img = d.imageUrl ? d.imageUrl : 'https://via.placeholder.com/150/FFD166/ffffff?text=' + d.role[0];
+                    const img = d.imageUrl ? d.imageUrl : "https://via.placeholder.com/150/F1F3F5/868E96?text=?";
                     con.innerHTML += `
                     <div class="profile-card">
                         <button class="btn-del-profile" onclick="delFamily('${doc.id}')"><i class="fa-solid fa-xmark"></i></button>
