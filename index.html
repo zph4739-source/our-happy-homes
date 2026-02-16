@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리 가족 행복 공간</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* [모던 디자인 시스템] */
+        :root {
+            --primary: #FF6B6B; --primary-light: #FFF0F0;
+            --bg-color: #F7F8FA; --white: #FFFFFF;
+            --text-main: #2C3E50; --text-sub: #95A5A6;
+            --radius: 24px;
+            --shadow-card: 0 10px 40px -10px rgba(0,0,0,0.05);
+            --shadow-float: 0 10px 30px rgba(255, 107, 107, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); color: var(--text-main); -webkit-font-smoothing: antialiased; }
+        
+        .app-layout { display: flex; min-height: 100vh; flex-direction: column; }
+        .main-content { flex: 1; padding: 20px; padding-bottom: 100px; max-width: 600px; margin: 0 auto; width: 100%; }
+
+        /* 헤더 */
+        .mobile-header { 
+            background: rgba(247, 248, 250, 0.9); padding: 15px 20px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 99; backdrop-filter: blur(10px);
+        }
+        .brand { font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px; }
+        .brand span { color: var(--primary); }
+
+        /* 네비게이션 */
+        .main-nav { 
+            background: rgba(255, 255, 255, 0.95); z-index: 100; position: fixed; bottom: 0; 
+            width: 100%; height: 70px; display: flex; justify-content: space-around; align-items: center; 
+            border-top: 1px solid rgba(0,0,0,0.03); border-radius: 24px 24px 0 0; 
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.03); padding-bottom: env(safe-area-inset-bottom); backdrop-filter: blur(10px);
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #C4C4C4; cursor: pointer; width: 100%; transition: all 0.3s; }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 4px; transition: transform 0.2s; }
+        .nav-item span { font-size: 0.7rem; font-weight: 600; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { transform: translateY(-3px); }
+        .nav-logo { display: none; }
+
+        /* 공통 UI 요소 */
+        .card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow-card); margin-bottom: 24px; border: 1px solid rgba(0,0,0,0.01); }
+        .tab-section { display: none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .tab-section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- [1] 피드 & 댓글 스타일 (모던) --- */
+        
+        /* 글쓰기 영역 */
+        .write-top { display: flex; gap: 12px; margin-bottom: 15px; }
+        .user-avatar-sm { width: 36px; height: 36px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; flex-shrink: 0; }
+        .write-input-wrapper { background: #F0F2F5; border-radius: 18px; padding: 15px; width: 100%; transition: 0.2s; }
+        .write-input-wrapper:focus-within { background: #fff; box-shadow: 0 0 0 2px var(--primary-light); }
+        
+        .user-select { border: none; background: transparent; font-weight: 700; font-size: 0.9rem; color: var(--text-main); outline: none; cursor: pointer; margin-bottom: 5px; }
+        .write-textarea { width: 100%; border: none; background: transparent; outline: none; resize: none; font-size: 1rem; min-height: 60px; font-family: inherit; }
+        .write-textarea::placeholder { color: #ADB5BD; }
+
+        .image-preview-box { position: relative; display: none; margin: 15px 0; border-radius: 16px; overflow: hidden; }
+        .image-preview-box img { width: 100%; max-height: 350px; object-fit: cover; display: block; }
+        .btn-remove-img { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; backdrop-filter: blur(4px); }
+
+        .write-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
+        .file-label { display: flex; align-items: center; gap: 8px; color: var(--primary); font-weight: 600; cursor: pointer; padding: 8px 12px; border-radius: 20px; transition: 0.2s; font-size: 0.9rem; }
+        .file-label:hover { background: var(--primary-light); }
+        .btn-post { background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 0.95rem; box-shadow: var(--shadow-float); transition: 0.2s; }
+        .btn-post:active { transform: scale(0.95); }
+        .btn-post:disabled { background: #E0E0E0; box-shadow: none; cursor: not-allowed; }
+
+        /* 게시물 리스트 */
+        .post-header { display: flex; align-items: center; margin-bottom: 15px; }
+        .post-info h4 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main); }
+        .post-info span { font-size: 0.75rem; color: var(--text-sub); }
+        .btn-more { margin-left: auto; border: none; background: none; color: #CED4DA; cursor: pointer; padding: 5px; }
+        
+        .post-text { font-size: 1rem; line-height: 1.6; color: #333; margin-bottom: 15px; white-space: pre-wrap; }
+        .post-img { width: 100%; border-radius: 16px; margin-bottom: 15px; display: block; }
+        
+        .post-stats { display: flex; gap: 15px; padding: 12px 0; border-top: 1px solid #F1F3F5; }
+        .stat-item { display: flex; align-items: center; gap: 6px; color: var(--text-sub); font-size: 0.9rem; cursor: pointer; border: none; background: none; transition: 0.2s; font-weight: 500; }
+        .stat-item:hover, .stat-item.active { color: var(--primary); }
+        .stat-item i { font-size: 1.1rem; }
+
+        /* 댓글 섹션 (Modern) */
+        .comments-wrap { 
+            display: none; background: #F8F9FA; margin: 0 -24px -24px -24px; 
+            padding: 20px; border-top: 1px solid #F1F3F5; 
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+        .comments-wrap.open { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .comment-list { list-style: none; padding-bottom: 15px; }
+        .comment-item { display: flex; gap: 10px; margin-bottom: 12px; }
+        .comment-bubble { background: #fff; padding: 8px 12px; border-radius: 0 12px 12px 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); max-width: 85%; }
+        .comment-author { font-size: 0.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 2px; display: block; }
+        .comment-text { font-size: 0.9rem; color: #444; line-height: 1.4; }
+        
+        .comment-form { display: flex; gap: 8px; align-items: center; position: relative; }
+        .comment-select { position: absolute; left: 5px; top: 50%; transform: translateY(-50%); border: none; background: transparent; font-size: 0.8rem; font-weight: bold; color: #666; cursor: pointer; outline: none; z-index: 2; padding: 5px; }
+        .comment-input { width: 100%; padding: 10px 45px 10px 60px; border: 1px solid #E9ECEF; border-radius: 20px; outline: none; font-size: 0.9rem; transition: 0.2s; }
+        .comment-input:focus { border-color: var(--primary); background: #fff; }
+        .btn-send-comment { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); border: none; background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-send-comment:hover { transform: translateY(-50%) scale(1.1); }
+
+
+        /* --- [2] 캘린더 & 일정 모달 --- */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .calendar-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 5px 10px; color: var(--text-sub); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .cal-head { font-weight: 600; color: #B0B8C1; font-size: 0.8rem; margin-bottom: 10px; }
+        .cal-day { min-height: 80px; padding: 8px; border-radius: 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; border: 1px solid transparent; }
+        .cal-day:hover { background-color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .cal-day.today { background-color: var(--primary-light); color: var(--primary); }
+        .event-dot { font-size: 0.7rem; background: var(--primary); color: white; padding: 3px 8px; border-radius: 6px; width: 100%; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 모달창 디자인 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 200; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-card { background: white; width: 85%; max-width: 380px; padding: 30px; border-radius: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: zoomIn 0.2s ease; }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 5px; color: var(--text-main); }
+        .modal-date { font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-bottom: 20px; }
+        
+        .modal-list { list-style: none; margin-bottom: 20px; max-height: 200px; overflow-y: auto; }
+        .modal-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #F8F9FA; border-radius: 12px; margin-bottom: 8px; font-size: 0.95rem; }
+        
+        .input-box { background: #F0F2F5; border-radius: 16px; padding: 5px 15px; display: flex; align-items: center; margin-bottom: 15px; transition: 0.2s; }
+        .input-box:focus-within { background: white; box-shadow: 0 0 0 2px var(--primary-light); }
+        .input-box input { width: 100%; padding: 12px 0; border: none; background: transparent; outline: none; font-size: 0.95rem; }
+        
+        .modal-buttons { display: flex; gap: 10px; }
+        .btn-modal { flex: 1; padding: 14px; border: none; border-radius: 16px; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
+        .btn-close { background: #F1F3F5; color: #868E96; }
+        .btn-save { background: var(--primary); color: white; box-shadow: var(--shadow-float); }
+
+        /* [PC 대응] */
+        @media (min-width: 768px) {
+            .app-layout { flex-direction: row; }
+            .mobile-header { display: none; }
+            .main-nav { position: sticky; top: 0; width: var(--nav-width-pc); height: 100vh; flex-direction: column; justify-content: flex-start; padding: 60px 30px; border-radius: 0; box-shadow: none; border-right: 1px solid rgba(0,0,0,0.05); }
+            .nav-item { flex-direction: row; height: auto; padding: 18px 20px; margin-bottom: 12px; border-radius: 16px; justify-content: flex-start; font-size: 1.1rem; }
+            .nav-item i { margin: 0 18px 0 0; font-size: 1.4rem; }
+            .main-content { padding: 60px 40px; max-width: 900px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-layout">
+        <header class="mobile-header">
+            <div class="brand"><span>Happy</span>Family</div>
+            <div class="user-avatar-sm" style="background:var(--primary); color:white; font-size:0.9rem;">😎</div>
+        </header>
+
+        <nav class="main-nav">
+            <div class="nav-logo"><i class="fa-solid fa-house-chimney-heart" style="color:var(--primary); margin-right:10px;"></i><span>Happy</span>Family</div>
+            <div class="nav-item active" onclick="changeTab('feed', this)"><i class="fa-solid fa-house"></i><span>소통 피드</span></div>
+            <div class="nav-item" onclick="changeTab('calendar', this)"><i class="fa-regular fa-calendar-check"></i><span>가족 일정</span></div>
+            <div class="nav-item" onclick="changeTab('family', this)"><i class="fa-solid fa-users"></i><span>가족 소개</span></div>
+        </nav>
+
+        <main class="main-content">
+            
+            <div id="feed" class="tab-section active">
+                
+                <div class="card">
+                    <div class="write-top">
+                        <div class="user-avatar-sm" style="background:#FFD166;">📝</div>
+                        <div class="write-input-wrapper">
+                            <select id="postAuthor" class="user-select">
+                                <option value="아빠">👨 아빠</option>
+                                <option value="엄마">👩 엄마</option>
+                                <option value="첫째">👧 첫째</option>
+                                <option value="막내">👦 막내</option>
+                            </select>
+                            <textarea id="postContent" class="write-textarea" placeholder="가족들에게 무슨 일이 있었나요?"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div id="imagePreviewBox" class="image-preview-box">
+                        <img id="imagePreview" src="">
+                        <button class="btn-remove-img" onclick="clearImage()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="write-actions">
+                        <label for="imageInput" class="file-label">
+                            <i class="fa-regular fa-image"></i> 사진 추가
+                        </label>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+                        <button id="btnPost" class="btn-post" onclick="addPost()">게시하기</button>
+                    </div>
+                </div>
+
+                <div id="feed-container"></div>
+            </div>
+
+            <div id="calendar" class="tab-section">
+                <div class="card">
+                    <div class="calendar-header">
+                        <button class="calendar-btn" onclick="moveMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <h2 id="month-display" style="font-size:1.2rem; font-weight:800; color:#2C3E50;"></h2>
+                        <button class="calendar-btn" onclick="moveMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <div class="calendar-grid" style="margin-bottom:15px;">
+                        <div class="cal-head" style="color:#FF6B6B">일</div><div class="cal-head">월</div><div class="cal-head">화</div><div class="cal-head">수</div><div class="cal-head">목</div><div class="cal-head">금</div><div class="cal-head">토</div>
+                    </div>
+                    <div id="calendar-days" class="calendar-grid"></div>
+                </div>
+            </div>
+
+            <div id="family" class="tab-section">
+                <h2 style="margin-bottom:20px; font-weight:800;">우리 가족</h2>
+                <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:15px;">
+                    <div class="card" style="text-align:center; padding:30px 20px;">
+                        <div class="user-avatar-sm" style="background:#E0E0E0; width:70px; height:70px; font-size:2rem; margin:0 auto 15px;">👨</div>
+                        <h3>아빠</h3>
+                    </div>
+                    <div class="card" style="text-align:center; padding:30px 20px;">
+                        <div class="user-avatar-sm" style="background:#FFC8DD; width:70px; height:70px; font-size:2rem; margin:0 auto 15px;">👩</div>
+                        <h3>엄마</h3>
+                    </div>
+                    <div class="card" style="text-align:center; padding:30px 20px;">
+                        <div class="user-avatar-sm" style="background:#BDE0FE; width:70px; height:70px; font-size:2rem; margin:0 auto 15px;">👦</div>
+                        <h3>막내</h3>
+                    </div>
+                    <div class="card" style="text-align:center; padding:30px 20px;">
+                        <div class="user-avatar-sm" style="background:#FFF9C4; width:70px; height:70px; font-size:2rem; margin:0 auto 15px;">🐶</div>
+                        <h3>뽀삐</h3>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="eventModal" class="modal-overlay">
+        <div class="modal-card">
+            <h3 class="modal-title">📅 일정 관리</h3>
+            <p id="modalDateDisplay" class="modal-date">날짜 선택됨</p>
+            
+            <ul id="eventList" class="modal-list"></ul>
+            <p id="noEventMsg" style="color:#aaa; text-align:center; margin-bottom:20px; font-size:0.9rem;">등록된 일정이 없습니다.</p>
+            
+            <div style="border-top:1px solid #F1F3F5; padding-top:20px;">
+                <input type="hidden" id="eventDate">
+                <div class="input-box">
+                    <input type="text" id="eventTitle" placeholder="일정을 입력하세요" onkeydown="handleEnter(event)">
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-modal btn-close" onclick="closeModal()">취소</button>
+                    <button class="btn-modal btn-save" onclick="saveEvent()">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // [필수] 여기에 본인의 firebaseConfig를 넣어주세요!
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",
+            authDomain: "our-family-home.firebaseapp.com",
+            projectId: "our-family-home",
+            storageBucket: "our-family-home.firebasestorage.app",
+            messagingSenderId: "446464856858",
+            appId: "1:446464856858:web:344f2c83aeda0ea9ae52a3"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        /* --- [1] 이미지 압축 및 업로드 --- */
+        let compressedImageString = null;
+        function handleImageSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 800;
+                    let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    compressedImageString = canvas.toDataURL('image/jpeg', 0.7);
+                    document.getElementById('imagePreview').src = compressedImageString;
+                    document.getElementById('imagePreviewBox').style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        function clearImage() {
+            compressedImageString = null;
+            document.getElementById('imageInput').value = '';
+            document.getElementById('imagePreviewBox').style.display = 'none';
+        }
+
+        /* --- [2] 게시물 기능 --- */
+        function addPost() {
+            const author = document.getElementById('postAuthor').value;
+            const content = document.getElementById('postContent').value;
+            const btnPost = document.getElementById('btnPost');
+
+            if (!content && !compressedImageString) return alert("내용을 입력해주세요!");
+            btnPost.disabled = true; btnPost.innerText = "게시 중...";
+
+            db.collection("family_posts").add({
+                author: author, content: content, imageUrl: compressedImageString,
+                likes: 0, comments: [], timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                document.getElementById('postContent').value = '';
+                clearImage();
+                btnPost.disabled = false; btnPost.innerText = "게시하기";
+            }).catch(err => { alert("오류 발생"); btnPost.disabled = false; });
+        }
+
+        // 게시물 실시간 로드
+        db.collection("family_posts").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+            const feedContainer = document.getElementById('feed-container');
+            feedContainer.innerHTML = "";
+            
+            snapshot.forEach((doc) => {
+                const post = doc.data();
+                const postId = doc.id;
+                
+                // 아바타 & 색상
+                let color = "#FFD166"; let icon = "😐";
+                if(post.author === "아빠") { color="#E0E0E0"; icon="👨"; }
+                if(post.author === "엄마") { color="#FFC8DD"; icon="👩"; }
+                if(post.author === "막내") { color="#BDE0FE"; icon="👦"; }
+
+                const imgHtml = post.imageUrl ? `<img src="${post.imageUrl}" class="post-img">` : '';
+                
+                // 댓글 렌더링
+                let commentsHtml = "";
+                if(post.comments && post.comments.length > 0) {
+                    post.comments.forEach(c => {
+                        // 댓글 아이콘도 작성자에 따라 다르게
+                        let cIcon = "😐";
+                        if(c.author === "아빠") cIcon="👨";
+                        else if(c.author === "엄마") cIcon="👩";
+                        else if(c.author === "막내") cIcon="👦";
+
+                        commentsHtml += `
+                            <li class="comment-item">
+                                <div class="user-avatar-sm" style="width:28px; height:28px; background:#f0f0f0; font-size:0.9rem;">${cIcon}</div>
+                                <div class="comment-bubble">
+                                    <span class="comment-author">${c.author}</span>
+                                    <span class="comment-text">${c.text}</span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                }
+
+                feedContainer.innerHTML += `
+                    <div class="card">
+                        <div class="post-header">
+                            <div class="user-avatar-sm" style="background:${color}; margin-right:12px;">${icon}</div>
+                            <div class="post-info"><h4>${post.author}</h4><span>${post.timestamp ? new Date(post.timestamp.toDate()).toLocaleString() : '방금 전'}</span></div>
+                            <button class="btn-more" onclick="deletePost('${postId}')"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div class="post-text">${post.content}</div>
+                        ${imgHtml}
+                        
+                        <div class="post-stats">
+                            <button class="stat-item ${post.likes > 0 ? 'active' : ''}" onclick="toggleLike('${postId}', ${post.likes})">
+                                <i class="${post.likes > 0 ? 'fa-solid' : 'fa-regular'} fa-heart"></i> ${post.likes || 0}
+                            </button>
+                            <button class="stat-item" onclick="toggleComments('${postId}')">
+                                <i class="fa-regular fa-comment-dots"></i> 댓글 ${post.comments ? post.comments.length : 0}
+                            </button>
+                        </div>
+
+                        <div id="comments-${postId}" class="comments-wrap">
+                            <ul class="comment-list">${commentsHtml}</ul>
+                            <div class="comment-form">
+                                <select id="comment-author-${postId}" class="comment-select">
+                                    <option>아빠</option><option>엄마</option><option>막내</option>
+                                </select>
+                                <input type="text" id="comment-input-${postId}" class="comment-input" placeholder="댓글을 입력하세요..." onkeydown="handleCommentEnter(event, '${postId}')">
+                                <button class="btn-send-comment" onclick="addComment('${postId}')"><i class="fa-solid fa-paper-plane"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+
+        /* --- [3] 액션 함수들 --- */
+        function toggleLike(id, current) { db.collection("family_posts").doc(id).update({ likes: (current || 0) + 1 }); }
+        function deletePost(id) { if(confirm("삭제할까요?")) db.collection("family_posts").doc(id).delete(); }
+        
+        function toggleComments(postId) {
+            const wrap = document.getElementById(`comments-${postId}`);
+            wrap.classList.toggle('open');
+        }
+
+        function addComment(postId) {
+            const author = document.getElementById(`comment-author-${postId}`).value;
+            const input = document.getElementById(`comment-input-${postId}`);
+            const text = input.value;
+            if(!text) return;
+
+            db.collection("family_posts").doc(postId).update({
+                comments: firebase.firestore.FieldValue.arrayUnion({ author: author, text: text })
+            }).then(() => { input.value = ''; });
+        }
+
+        function handleCommentEnter(e, postId) { if(e.key === 'Enter' && !e.isComposing) addComment(postId); }
+
+
+        /* --- [4] 캘린더 로직 (기존 동일) --- */
+        let currentDate = new Date(); let events = []; let currentModalDate = null;
+        function renderCalendar() {
+            const year = currentDate.getFullYear(); const month = currentDate.getMonth();
+            document.getElementById('month-display').innerText = `${year}년 ${month + 1}월`;
+            const firstDay = new Date(year, month, 1); const lastDay = new Date(year, month + 1, 0);
+            const daysContainer = document.getElementById('calendar-days'); daysContainer.innerHTML = "";
+            for(let i=0; i<firstDay.getDay(); i++) daysContainer.innerHTML += `<div></div>`;
+            for(let i=1; i<=lastDay.getDate(); i++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const dayEvents = events.filter(e => e.date === dateStr);
+                const eventHtml = dayEvents.map(e => `<div class="event-dot">${e.title}</div>`).join('');
+                const todayClass = new Date().toDateString() === new Date(year, month, i).toDateString() ? 'today' : '';
+                daysContainer.innerHTML += `<div class="cal-day ${todayClass}" onclick="openModal('${dateStr}')"><span>${i}</span>${eventHtml}</div>`;
+            }
+        }
+        function moveMonth(step) { currentDate.setMonth(currentDate.getMonth() + step); renderCalendar(); }
+        
+        function openModal(dateStr) {
+            currentModalDate = dateStr; document.getElementById('eventDate').value = dateStr;
+            document.getElementById('modalDateDisplay').innerText = dateStr; document.getElementById('eventTitle').value = '';
+            renderModalList(); document.getElementById('eventModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('eventTitle').focus(), 100);
+        }
+        function closeModal() { document.getElementById('eventModal').style.display = 'none'; currentModalDate = null; }
+        function renderModalList() {
+            if(!currentModalDate) return;
+            const dayEvents = events.filter(e => e.date === currentModalDate);
+            const list = document.getElementById('eventList'); const noMsg = document.getElementById('noEventMsg');
+            list.innerHTML = '';
+            if(dayEvents.length > 0) {
+                noMsg.style.display = 'none';
+                dayEvents.forEach(e => {
+                    list.innerHTML += `<li class="modal-item"><span>${e.title}</span><button style="border:none;background:none;color:#FF6B6B;cursor:pointer;" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button></li>`;
+                });
+            } else { noMsg.style.display = 'block'; }
+        }
+        function handleEnter(e) { if (e.key === 'Enter' && !e.isComposing) saveEvent(); }
+        function saveEvent() {
+            const date = document.getElementById('eventDate').value; const title = document.getElementById('eventTitle').value;
+            if(!date || !title) return;
+            db.collection("family_events").add({ date: date, title: title, timestamp: firebase.firestore.FieldValue.serverTimestamp() }).then(() => closeModal());
+        }
+        function deleteEvent(id) { if(confirm("삭제?")) db.collection("family_events").doc(id).delete(); }
+        
+        db.collection("family_events").orderBy("timestamp").onSnapshot(snap => {
+            events = []; snap.forEach(doc => events.push({ id: doc.id, ...doc.data() }));
+            renderCalendar(); if(currentModalDate) renderModalList();
+        });
+
+        // 탭 전환
+        window.changeTab = function(tabId, element) {
+            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if(element) element.classList.add('active');
+        }
+
+        renderCalendar();
+    </script>
+</body>
+</html>
