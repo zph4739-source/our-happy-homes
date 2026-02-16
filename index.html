@@ -268,7 +268,7 @@
 
     <script>
         // ==========================================
-        // [필수] 여기에 본인의 firebaseConfig를 넣어주세요!
+        // [완벽하게 적용된 키]
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",
@@ -442,11 +442,10 @@
                 daysContainer.innerHTML += `<div class="cal-day ${todayClass}" onclick="openModal('${dateStr}')"><span>${i}</span>${eventHtml}</div>`;
             }
         }
-        function moveMonth(step) { currentDate.setMonth(currentDate.getMonth() + step); renderCalendar(); }
+        function moveMonth(s) { currentDate.setMonth(currentDate.getMonth() + s); renderCalendar(); }
         
-        function openModal(dateStr) {
-            currentModalDate = dateStr; document.getElementById('eventDate').value = dateStr;
-            document.getElementById('modalDateDisplay').innerText = dateStr; document.getElementById('eventTitle').value = '';
+        function openModal(d) {
+            currentModalDate = d; document.getElementById('eventDate').value = d; document.getElementById('modalDateDisplay').innerText = d;
             renderModalList(); document.getElementById('eventModal').style.display = 'flex';
             setTimeout(() => document.getElementById('eventTitle').focus(), 100);
         }
