@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Yummy Family</title>
+    <title>Yummy Family Log</title>
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#FFFDF5">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1685/1685822.png">
-    
     <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiWXVtbXkgRmFtaWx5Iiwic2hvcnRfbmFtZSI6Ill1bW15Iiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNGRkZERjUiLCJ0aGVtZV9jb2xvciI6IiNGRkZERjUiLCJpY29ucyI6W3sic3JjIjoiaHR0cHM6Ly9jZG4taWNvbnS1wbmcuZmxhdGljb24uY29tLzUxMi8xNjg1LzE2ODU4MjIucG5nIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
 
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
@@ -28,36 +27,33 @@
             --border-thick: 2px solid #4A2c2A; --shadow-hard: 4px 4px 0px #4A2c2A;
             --radius-L: 20px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-cream); color: var(--text-choco);
-            min-height: 100vh; overflow-x: hidden; padding-bottom: 120px;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-cream); color: var(--text-choco); min-height: 100vh; overflow-x: hidden; padding-bottom: 120px; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"); }
 
         .floating-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
         .app-layout { max-width: 600px; margin: 0 auto; padding-bottom: 120px; position: relative; }
 
         /* 헤더 */
-        .header { padding: 40px 24px 20px; text-align: center; position: sticky; top: 0; z-index: 50; background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(5px); border-bottom: var(--border-thick); }
+        .header { padding: 20px 24px; text-align: center; position: sticky; top: 0; z-index: 50; background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(5px); border-bottom: var(--border-thick); }
         .brand-title { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--accent-red); text-shadow: 2px 2px 0px var(--text-choco); letter-spacing: 1px; margin-bottom: 5px; }
         .brand-sub { font-family: 'Jua', sans-serif; font-size: 16px; color: var(--text-choco); }
-        .my-badge { position: absolute; right: 20px; top: 40px; width: 40px; height: 40px; background: white; border: var(--border-thick); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-hard); cursor: pointer; }
+        .my-badge { position: absolute; right: 20px; top: 25px; width: 40px; height: 40px; background: white; border: var(--border-thick); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-hard); cursor: pointer; }
         .my-badge img { width: 100%; height: 100%; object-fit: cover; }
 
         /* UI 컴포넌트 */
         .retro-card { background: white; border: var(--border-thick); border-radius: var(--radius-L); padding: 24px; margin: 24px 20px; box-shadow: var(--shadow-hard); position: relative; transition: 0.2s; }
         .btn-pop { background: var(--accent-red); color: white; border: var(--border-thick); padding: 14px 24px; border-radius: 50px; font-family: 'Jua', sans-serif; font-size: 18px; cursor: pointer; box-shadow: var(--shadow-hard); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-pop:active { transform: translate(2px, 2px); box-shadow: none; background: #C0392B; }
-        .btn-pop:disabled { background: #ccc; border-color: #999; color: #666; cursor: not-allowed; box-shadow: none; transform: translate(2px, 2px); }
         .btn-pop.yellow { background: var(--accent-yellow); color: var(--text-choco); }
         .btn-pop.gray { background: #E0E0E0; color: #555; border-color: #999; box-shadow: 2px 2px 0px #999; }
-        .input-retro { width: 100%; background: #FFF; border: var(--border-thick); border-radius: 16px; padding: 14px; font-size: 16px; color: var(--text-choco); outline: none; box-shadow: inset 2px 2px 5px rgba(74, 44, 42, 0.1); font-family: 'Noto Sans KR'; }
+        /* 설치 버튼 전용 스타일 */
+        .btn-pop.install { background: #333; color: white; border-color: #333; }
+        .input-retro { width: 100%; background: #FFF; border: var(--border-thick); border-radius: 16px; padding: 14px; font-size: 16px; color: var(--text-choco); outline: none; box-shadow: inset 2px 2px 5px rgba(74, 44, 42, 0.1); }
 
         /* 탭 & 네비게이션 */
         .tab-section { display: none; } .tab-section.active { display: block; animation: popIn 0.3s; }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        .nav-dock { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 70px; background: var(--text-choco); border-radius: 40px; box-shadow: 0 10px 20px rgba(74, 44, 42, 0.3); display: flex; justify-content: space-around; align-items: center; padding: 0 20px; z-index: 100; border: 2px solid white; }
+        .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 70px; background: var(--text-choco); border-radius: 40px; box-shadow: 0 10px 20px rgba(74, 44, 42, 0.3); display: flex; justify-content: space-around; align-items: center; padding: 0 20px; z-index: 100; border: 2px solid white; }
         .nav-item { color: rgba(255,255,255,0.5); font-size: 24px; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--accent-yellow); transform: translateY(-5px); }
 
@@ -73,9 +69,9 @@
         .shop-del { color: #aaa; cursor: pointer; padding: 5px; }
 
         /* 챗봇 스타일 */
-        .chatbot-btn { position: fixed; bottom: 120px; right: 20px; width: 60px; height: 60px; background: var(--accent-red); border: var(--border-thick); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; box-shadow: var(--shadow-hard); cursor: pointer; z-index: 999; transition: 0.2s; }
+        .chatbot-btn { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--accent-red); border: var(--border-thick); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; box-shadow: var(--shadow-hard); cursor: pointer; z-index: 999; transition: 0.2s; }
         .chatbot-btn:active { transform: translate(2px, 2px); box-shadow: none; }
-        .chat-window { position: fixed; bottom: 190px; right: 20px; width: 320px; height: 480px; background: white; border: var(--border-thick); border-radius: 20px; display: none; flex-direction: column; z-index: 999; box-shadow: 10px 10px 0px rgba(0,0,0,0.2); overflow: hidden; animation: popUp 0.3s; }
+        .chat-window { position: fixed; bottom: 170px; right: 20px; width: 320px; height: 480px; background: white; border: var(--border-thick); border-radius: 20px; display: none; flex-direction: column; z-index: 999; box-shadow: 10px 10px 0px rgba(0,0,0,0.2); overflow: hidden; animation: popUp 0.3s; }
         .chat-head { background: var(--accent-yellow); padding: 15px; border-bottom: var(--border-thick); font-family: 'Jua'; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
         .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #fffdf5; font-size: 14px; }
         .chat-msg { margin-bottom: 10px; max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; border: 1px solid rgba(0,0,0,0.1); word-break: keep-all; }
@@ -264,7 +260,12 @@
 
     <div id="familyModal" class="modal-bg">
         <div class="modal-card">
-            <div class="modal-tit">🍒 가족 추가</div>
+            <div class="modal-tit">🍒 설정 및 가족</div>
+            
+            <button id="btnInstallApp" class="btn-pop install" style="margin-bottom:20px; display:none;" onclick="installApp()">
+                <i class="fa-solid fa-download"></i> 앱으로 설치하기
+            </button>
+
             <div style="text-align:center; margin-bottom:20px;">
                 <label for="famImgInput" style="display:inline-block; cursor:pointer;">
                     <div id="famImgPreview" style="width:100px; height:100px; border-radius:50%; background:var(--bg-cream); border:var(--border-thick); display:flex; align-items:center; justify-content:center; overflow:hidden;">
@@ -300,6 +301,33 @@
         const db = firebase.firestore();
 
         function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
+
+        /* --- [앱 설치 로직 추가] --- */
+        let deferredPrompt;
+        // 안드로이드/크롬 등에서 설치 가능할 때 이벤트 감지
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // 설치 버튼 보이게 하기
+            const btn = document.getElementById('btnInstallApp');
+            if(btn) btn.style.display = 'flex';
+        });
+
+        // 설치 버튼 클릭 시 동작
+        function installApp() {
+            if (!deferredPrompt) {
+                // 아이폰이거나 이미 설치된 경우 등
+                alert("브라우저 메뉴의 [공유] 또는 [설정] 버튼을 누르고 \n'홈 화면에 추가'를 선택해주세요! 📲\n(아이폰은 사파리에서만 가능합니다)");
+                return;
+            }
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('User accepted the A2HS prompt');
+                }
+                deferredPrompt = null;
+            });
+        }
 
         /* --- [AI 핵심] 오프라인 백업 두뇌 --- */
         const recipes = {
@@ -484,66 +512,10 @@
                 author: selectedRole, authorImg: mem ? mem.imageUrl : null, content: txt, imageUrl: feedImg, likedBy: [], comments: [], timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerText="업로드!"; window.scrollTo(0,0);}).catch(e=>{alert("실패!");btn.disabled=false;btn.innerText="업로드!";});
         }
-        function likePost(id, likedByArr) {
-            if (!selectedRole) return alert("프로필을 먼저 선택해주세요!");
-            const likedBy = likedByArr || [];
-            if (likedBy.includes(selectedRole)) {
-                db.collection("family_posts").doc(id).update({ likedBy: firebase.firestore.FieldValue.arrayRemove(selectedRole) });
-            } else {
-                db.collection("family_posts").doc(id).update({ likedBy: firebase.firestore.FieldValue.arrayUnion(selectedRole) });
-                const btn = document.querySelector(`[data-like-id="${id}"]`); if (btn) { btn.classList.add('heart-pop'); setTimeout(() => btn.classList.remove('heart-pop'), 400); }
-            }
-        }
-        function loadFeed(){
-            db.collection("family_posts").limit(20).onSnapshot(snap=>{
-                const con=document.getElementById('feed-container'); con.innerHTML=""; let posts=[]; 
-                snap.forEach(d => {
-                    const data = d.data();
-                    if (!data.likedBy && typeof data.likes === 'number' && data.likes > 0) data.likedBy = [];
-                    posts.push({id: d.id, ...data});
-                });
-                posts.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
-                if(posts.length===0) con.innerHTML=`<div style="text-align:center;padding:40px;color:#aaa;">첫 글을 남겨보세요! 🍒</div>`;
-                posts.forEach(d=>{
-                    const pImg=d.authorImg?`<div class="fp-img"><img src="${d.authorImg}" style="width:100%;height:100%;object-fit:cover;"></div>`:`<div class="fp-img"><i class="fa-solid fa-user"></i></div>`;
-                    const iHtml=d.imageUrl?`<div class="feed-photo"><img src="${d.imageUrl}"></div>`:'';
-                    let cmtsHtml = '';
-                    if (d.comments && d.comments.length > 0) {
-                        d.comments.forEach((c, idx) => {
-                            cmtsHtml += `<div class="cmt-single"><div class="cmt-avatar">${getMemberImg(c.author)}</div><div class="cmt-body"><span class="cmt-author">${c.author}</span><span class="cmt-text">${c.text}</span></div><button class="cmt-del" onclick="delComment('${d.id}', ${idx})"><i class="fa-solid fa-times"></i></button></div>`;
-                        });
-                    }
-                    const myAvatar = getMyAvatarHtml();
-                    const timeStr = d.timestamp ? new Date(d.timestamp.seconds * 1000).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }) : '방금';
-                    const likedBy = d.likedBy || [];
-                    const likeCount = likedBy.length;
-                    const iLiked = selectedRole && likedBy.includes(selectedRole);
-                    
-                    let likeProfilesHtml = '';
-                    if (likeCount > 0) {
-                        likeProfilesHtml = '<div class="like-profiles">';
-                        likedBy.slice(0, 5).forEach(role => { likeProfilesHtml += `<div class="like-avatar">${getMemberImg(role)}</div>`; });
-                        likeProfilesHtml += `<span class="like-text"><b>${likedBy.join(', ')}</b>님이 좋아합니다</span></div>`;
-                    }
-
-                    con.innerHTML+=`<div class="retro-card" style="padding-bottom:0; overflow:hidden;"><div class="feed-head"><div class="feed-profile">${pImg}<div class="fp-info"><h4 style="font-size:15px;">${d.author}</h4><span style="font-size:12px; color:#999;">${timeStr}</span></div></div><button onclick="delPost('${d.id}')" style="border:none;background:none;color:#bbb;font-size:16px;"><i class="fa-solid fa-ellipsis"></i></button></div><div class="feed-text" style="margin-bottom:12px; font-size:15px; line-height:1.6;">${d.content}</div>${iHtml}<div class="feed-actions" style="display:flex; gap:12px; padding:8px 0;"><button class="act-btn ${iLiked?'liked':''}" data-like-id="${d.id}" onclick='likePost("${d.id}", ${JSON.stringify(likedBy)})'><i class="${iLiked?'fa-solid fa-heart':'fa-regular fa-heart'}" style="font-size:18px;"></i> ${likeCount > 0 ? likeCount : ''}</button><button class="act-btn" onclick="toggleCmt('${d.id}')"><i class="fa-regular fa-comment" style="font-size:18px;"></i> ${d.comments ? d.comments.length : 0}</button></div>${likeProfilesHtml}<div id="cmt-${d.id}" class="cmt-area"><div class="cmt-list">${cmtsHtml || '<div style="text-align:center;padding:20px;color:#ccc;font-size:13px;">아직 댓글이 없어요</div>'}</div><div class="cmt-input-bar"><div class="cmt-my-avatar">${myAvatar}</div><input type="text" id="cInp-${d.id}" placeholder="댓글 달기..." onkeydown="if(event.key==='Enter')addCmt('${d.id}')"><button class="cmt-send-btn" onclick="addCmt('${d.id}')">게시</button></div></div></div>`;
-                });
-            });
-        }
+        function likePost(id,n){db.collection("family_posts").doc(id).update({likes:(n||0)+1});}
         function delPost(id){if(confirm("삭제?"))db.collection("family_posts").doc(id).delete();}
         function toggleCmt(id){document.getElementById(`cmt-${id}`).classList.toggle('show');}
-        function addCmt(id){
-            if (!selectedRole) return alert("프로필을 먼저 선택해주세요!");
-            const t = document.getElementById(`cInp-${id}`).value.trim(); if(!t) return; 
-            db.collection("family_posts").doc(id).update({ comments: firebase.firestore.FieldValue.arrayUnion({ author: selectedRole, text: t, time: Date.now() }) });
-            document.getElementById(`cInp-${id}`).value = '';
-        }
-        function delComment(postId, cmtIndex) {
-            if (!confirm("삭제?")) return;
-            db.collection("family_posts").doc(postId).get().then(doc => {
-                if (doc.exists) { const comments = doc.data().comments || []; comments.splice(cmtIndex, 1); db.collection("family_posts").doc(postId).update({ comments: comments }); }
-            });
-        }
+        function addCmt(id){const r=document.getElementById(`cAuth-${id}`).value,t=document.getElementById(`cInp-${id}`).value; if(!t)return; db.collection("family_posts").doc(id).update({comments:firebase.firestore.FieldValue.arrayUnion({author:r,text:t})});}
 
         let curDate=new Date(), events=[], curModDate=null;
         function loadCal(){
@@ -575,14 +547,30 @@
 
         function loadShopping() {
             db.collection("family_shopping").orderBy("timestamp", "desc").onSnapshot(snap => {
-                const list = document.getElementById('shopList'); list.innerHTML = "";
+                const list = document.getElementById('shopList');
+                list.innerHTML = "";
                 snap.forEach(doc => {
-                    const d = doc.data(); const checkedClass = d.checked ? "checked" : ""; const checkColor = d.checked ? "on" : "";
-                    list.innerHTML += `<div class="shop-item ${checkedClass}"><div style="display:flex; align-items:center;"><div class="shop-check ${checkColor}" onclick="toggleShop('${doc.id}', ${!d.checked})"><i class="fa-solid fa-check" style="color:white; font-size:12px;"></i></div><span>${d.text}</span></div><i class="fa-solid fa-times shop-del" onclick="delShop('${doc.id}')"></i></div>`;
+                    const d = doc.data();
+                    const checkedClass = d.checked ? "checked" : "";
+                    const checkColor = d.checked ? "on" : "";
+                    list.innerHTML += `
+                    <div class="shop-item ${checkedClass}">
+                        <div style="display:flex; align-items:center;">
+                            <div class="shop-check ${checkColor}" onclick="toggleShop('${doc.id}', ${!d.checked})"><i class="fa-solid fa-check" style="color:white; font-size:12px;"></i></div>
+                            <span>${d.text}</span>
+                        </div>
+                        <i class="fa-solid fa-times shop-del" onclick="delShop('${doc.id}')"></i>
+                    </div>`;
                 });
             });
         }
-        function addShopItem() { const inp = document.getElementById('shopInput'); if(inp.value.trim()) { db.collection("family_shopping").add({ text: inp.value, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); inp.value = ''; } }
+        function addShopItem() {
+            const inp = document.getElementById('shopInput');
+            if(inp.value.trim()) {
+                db.collection("family_shopping").add({ text: inp.value, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                inp.value = '';
+            }
+        }
         function toggleShop(id, stat) { db.collection("family_shopping").doc(id).update({ checked: stat }); }
         function delShop(id) { if(confirm("삭제?")) db.collection("family_shopping").doc(id).delete(); }
 
