@@ -7,106 +7,36 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         /* [Theme: Retro 3D Cafe] */
         :root {
-            --bg-cream: #FFFDF5;
-            --text-choco: #4A2c2A;
-            --accent-red: #D94844;
-            --accent-pink: #FFD1D1;
-            --accent-yellow: #FFD56B;
-            --border-thick: 2px solid #4A2c2A;
-            --shadow-hard: 4px 4px 0px #4A2c2A;
+            --bg-cream: #FFFDF5; --text-choco: #4A2c2A;
+            --accent-red: #D94844; --accent-pink: #FFD1D1; --accent-yellow: #FFD56B;
+            --border-thick: 2px solid #4A2c2A; --shadow-hard: 4px 4px 0px #4A2c2A;
             --radius-L: 20px;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-cream); color: var(--text-choco);
-            min-height: 100vh; overflow-x: hidden;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-cream); color: var(--text-choco); min-height: 100vh; overflow-x: hidden; padding-bottom: 120px; background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"); }
 
-        /* 배경 3D 오브젝트 */
-        .floating-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; pointer-events: none; }
-        .floater { position: absolute; opacity: 0.8; animation: float3D 6s ease-in-out infinite alternate; }
-        .obj-1 { top: 10%; left: 5%; font-size: 40px; color: var(--accent-red); animation-duration: 7s; }
-        .obj-2 { top: 20%; right: -5%; font-size: 80px; color: var(--accent-pink); animation-duration: 9s; opacity: 0.5; }
-        .obj-3 { bottom: 15%; left: -10%; font-size: 100px; color: var(--accent-yellow); animation-duration: 8s; opacity: 0.6; }
-        .obj-4 { bottom: 30%; right: 10%; font-size: 30px; color: var(--accent-red); animation-duration: 6s; }
-        @keyframes float3D { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-30px) rotate(10deg); } }
-
+        .floating-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
         .app-layout { max-width: 600px; margin: 0 auto; padding-bottom: 120px; position: relative; }
 
         /* 헤더 */
-        .header { 
-            padding: 20px 24px; text-align: center; position: sticky; top: 0; z-index: 50;
-            background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(5px); border-bottom: var(--border-thick);
-        }
+        .header { padding: 20px 24px; text-align: center; position: sticky; top: 0; z-index: 50; background: rgba(255, 253, 245, 0.95); backdrop-filter: blur(5px); border-bottom: var(--border-thick); }
         .brand-title { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--accent-red); text-shadow: 2px 2px 0px var(--text-choco); letter-spacing: 1px; margin-bottom: 5px; }
         .brand-sub { font-family: 'Jua', sans-serif; font-size: 16px; color: var(--text-choco); }
         .my-badge { position: absolute; right: 20px; top: 25px; width: 40px; height: 40px; background: white; border: var(--border-thick); border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: var(--shadow-hard); }
         .my-badge img { width: 100%; height: 100%; object-fit: cover; }
 
-        /* 영수증 스타일 */
-        .receipt-paper {
-            background: white; width: 90%; margin: 20px auto; padding: 20px;
-            border-top: 1px solid #ddd; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative;
-            font-family: 'Nanum Gothic Coding', monospace;
-        }
-        .receipt-paper::before, .receipt-paper::after {
-            content: ""; position: absolute; left: 0; width: 100%; height: 10px; background-size: 20px 20px; background-repeat: repeat-x;
-        }
-        .receipt-paper::before { top: -10px; background-image: radial-gradient(circle at 10px 15px, transparent 10px, white 11px); }
-        .receipt-paper::after { bottom: -10px; background-image: radial-gradient(circle at 10px -5px, transparent 10px, white 11px); }
-        .receipt-title { text-align: center; font-size: 20px; border-bottom: 2px dashed #444; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; }
-        .shop-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd; font-size: 16px; }
-        .shop-item.checked span { text-decoration: line-through; color: #aaa; }
-        .shop-check { width: 20px; height: 20px; border: 2px solid var(--text-choco); border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .shop-check.on { background: var(--accent-red); }
-        .shop-del { color: #aaa; cursor: pointer; padding: 5px; }
-
-        /* 챗봇 스타일 */
-        .chatbot-btn {
-            position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px;
-            background: var(--accent-red); border: var(--border-thick); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 30px; color: white;
-            box-shadow: var(--shadow-hard); cursor: pointer; z-index: 999; transition: 0.2s;
-        }
-        .chatbot-btn:active { transform: translate(2px, 2px); box-shadow: none; }
-        
-        .chat-window {
-            position: fixed; bottom: 170px; right: 20px; width: 320px; height: 480px;
-            background: white; border: var(--border-thick); border-radius: 20px;
-            display: none; flex-direction: column; z-index: 999; box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
-            overflow: hidden; animation: popUp 0.3s;
-        }
-        .chat-head { background: var(--accent-yellow); padding: 15px; border-bottom: var(--border-thick); font-family: 'Jua'; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #fffdf5; font-size: 14px; }
-        .chat-msg { margin-bottom: 10px; max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; border: 1px solid rgba(0,0,0,0.1); word-break: keep-all; }
-        .msg-bot { background: white; align-self: flex-start; border-radius: 4px 12px 12px 12px; }
-        .msg-user { background: var(--accent-pink); align-self: flex-end; margin-left: auto; border-radius: 12px 12px 4px 12px; }
-        
-        /* 타이핑 인디케이터 */
-        .typing-indicator { display: inline-block; }
-        .typing-indicator span { display: inline-block; width: 6px; height: 6px; background: #aaa; border-radius: 50%; margin: 0 2px; animation: typing 1s infinite; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; } .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes typing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-
-        .chat-input-area { padding: 10px; border-top: var(--border-thick); display: flex; gap: 5px; background: white; }
-        .chat-inp { flex: 1; border: 1px solid #444; border-radius: 20px; padding: 10px; outline: none; }
-
-        /* 공통 UI */
+        /* UI 컴포넌트 */
         .retro-card { background: white; border: var(--border-thick); border-radius: var(--radius-L); padding: 24px; margin: 24px 20px; box-shadow: var(--shadow-hard); position: relative; transition: 0.2s; }
         .btn-pop { background: var(--accent-red); color: white; border: var(--border-thick); padding: 14px 24px; border-radius: 50px; font-family: 'Jua', sans-serif; font-size: 18px; cursor: pointer; box-shadow: var(--shadow-hard); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-pop:active { transform: translate(2px, 2px); box-shadow: none; background: #C0392B; }
-        .btn-pop:disabled { background: #ccc; border-color: #999; color: #666; cursor: not-allowed; box-shadow: none; transform: translate(2px, 2px); }
         .btn-pop.yellow { background: var(--accent-yellow); color: var(--text-choco); }
         .btn-pop.gray { background: #E0E0E0; color: #555; border-color: #999; box-shadow: 2px 2px 0px #999; }
         .input-retro { width: 100%; background: #FFF; border: var(--border-thick); border-radius: 16px; padding: 14px; font-size: 16px; color: var(--text-choco); outline: none; box-shadow: inset 2px 2px 5px rgba(74, 44, 42, 0.1); }
@@ -114,12 +44,37 @@
         /* 탭 & 네비게이션 */
         .tab-section { display: none; } .tab-section.active { display: block; animation: popIn 0.3s; }
         @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        
         .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; height: 70px; background: var(--text-choco); border-radius: 40px; box-shadow: 0 10px 20px rgba(74, 44, 42, 0.3); display: flex; justify-content: space-around; align-items: center; padding: 0 20px; z-index: 100; border: 2px solid white; }
         .nav-item { color: rgba(255,255,255,0.5); font-size: 24px; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--accent-yellow); transform: translateY(-5px); }
 
-        /* 기존 스타일들 */
+        /* 영수증 스타일 */
+        .receipt-paper { background: white; width: 90%; margin: 20px auto; padding: 20px; border-top: 1px solid #ddd; box-shadow: 0 5px 15px rgba(0,0,0,0.1); position: relative; font-family: 'Nanum Gothic Coding', monospace; }
+        .receipt-paper::before { content: ""; position: absolute; top: -10px; left: 0; width: 100%; height: 10px; background: radial-gradient(circle at 10px 15px, transparent 10px, white 11px); background-size: 20px 20px; }
+        .receipt-paper::after { content: ""; position: absolute; bottom: -10px; left: 0; width: 100%; height: 10px; background: radial-gradient(circle at 10px -5px, transparent 10px, white 11px); background-size: 20px 20px; }
+        .receipt-title { text-align: center; font-size: 20px; border-bottom: 2px dashed #444; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; }
+        .shop-input-area { display: flex; gap: 10px; margin-bottom: 15px; }
+        .shop-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd; font-size: 16px; }
+        .shop-check { width: 20px; height: 20px; border: 2px solid var(--text-choco); border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .shop-check.on { background: var(--accent-red); }
+        .shop-del { color: #aaa; cursor: pointer; padding: 5px; }
+
+        /* 챗봇 스타일 */
+        .chatbot-btn { position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px; background: var(--accent-red); border: var(--border-thick); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: white; box-shadow: var(--shadow-hard); cursor: pointer; z-index: 999; transition: 0.2s; }
+        .chatbot-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+        .chat-window { position: fixed; bottom: 170px; right: 20px; width: 320px; height: 480px; background: white; border: var(--border-thick); border-radius: 20px; display: none; flex-direction: column; z-index: 999; box-shadow: 10px 10px 0px rgba(0,0,0,0.2); overflow: hidden; animation: popUp 0.3s; }
+        .chat-head { background: var(--accent-yellow); padding: 15px; border-bottom: var(--border-thick); font-family: 'Jua'; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #fffdf5; font-size: 14px; }
+        .chat-msg { margin-bottom: 10px; max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.4; border: 1px solid rgba(0,0,0,0.1); word-break: keep-all; }
+        .msg-bot { background: white; align-self: flex-start; border-radius: 4px 12px 12px 12px; }
+        .msg-user { background: var(--accent-pink); align-self: flex-end; margin-left: auto; border-radius: 12px 12px 4px 12px; }
+        .chat-input-area { padding: 10px; border-top: var(--border-thick); display: flex; gap: 5px; background: white; }
+        .chat-inp { flex: 1; border: 1px solid #444; border-radius: 20px; padding: 10px; outline: none; }
+        .typing-indicator span { display: inline-block; width: 6px; height: 6px; background: #aaa; border-radius: 50%; margin: 0 2px; animation: typing 1s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; } .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        /* 기타 스타일 */
         .writer-scroll { display: flex; gap: 12px; margin-bottom: 20px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
         .radio-hidden { display: none; }
         .writer-tag { padding: 8px 16px; background: white; border: var(--border-thick); border-radius: 30px; font-family: 'Jua', sans-serif; font-size: 16px; color: var(--text-choco); cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; box-shadow: 2px 2px 0px rgba(74, 44, 42, 0.2); }
@@ -133,19 +88,17 @@
         .act-btn { padding: 8px 12px; background: var(--bg-cream); border: 2px solid #E5D0C0; border-radius: 12px; font-weight: 700; font-size: 13px; color: var(--text-choco); display: flex; gap: 6px; align-items: center; cursor: pointer; }
         .cmt-area { background: #FFF8E7; border: 2px dashed #E5D0C0; border-radius: 16px; padding: 15px; margin-top: 15px; display: none; }
         .cmt-area.show { display: block; }
-        
         .cal-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .cal-title { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--accent-red); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
         .date-box { min-height: 70px; background: white; border: 2px solid #E5D0C0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; padding: 5px; cursor: pointer; }
         .date-box.today { background: var(--accent-yellow); border: var(--border-thick); }
         .ev-badge { width: 8px; height: 8px; background: var(--accent-red); border-radius: 50%; border: 1px solid var(--text-choco); margin-top: 4px; }
-
         .family-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 0 10px; }
         .mem-card { background: white; border: var(--border-thick); border-radius: 24px; padding: 20px 10px; text-align: center; box-shadow: var(--shadow-hard); position: relative; }
         .mem-pic { width: 80px; height: 80px; border-radius: 50%; border: var(--border-thick); object-fit: cover; margin-bottom: 10px; background: var(--bg-cream); display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: auto; overflow: hidden; }
         .add-card { border: 2px dashed var(--text-choco); background: rgba(255,255,255,0.5); box-shadow: none; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; min-height: 200px; gap: 10px; }
-
+        
         .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 44, 42, 0.6); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
         .modal-card { background: var(--bg-cream); width: 85%; max-width: 350px; padding: 25px; border: var(--border-thick); border-radius: var(--radius-L); box-shadow: 8px 8px 0px rgba(0,0,0,0.2); }
         .modal-tit { font-family: 'Jua', sans-serif; font-size: 24px; margin-bottom: 20px; color: var(--text-choco); display:flex; align-items:center; gap:8px;}
@@ -218,7 +171,7 @@
             <div id="shopping" class="tab-section">
                 <div class="receipt-paper">
                     <div class="receipt-title">🛒 장보기 리스트</div>
-                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <div class="shop-input-area">
                         <input type="text" id="shopInput" class="input-retro" placeholder="살 것 입력 (예: 우유)" onkeydown="if(event.key==='Enter')addShopItem()">
                         <button class="btn-pop" style="width:auto;" onclick="addShopItem()">+</button>
                     </div>
@@ -309,8 +262,7 @@
 
         function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
 
-        /* --- [AI 핵심] 모델 자동 선택 로직 (2.5 -> 2.0 -> 1.5) --- */
-        // 최신 모델부터 구형 모델까지 순서대로 시도합니다.
+        /* --- [AI 핵심] 자동 모델 우회 시스템 & 강력해진 프롬프트 --- */
         const AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
         async function sendChat() {
@@ -324,16 +276,22 @@
 
             const systemPrompt = `
                 너는 '체리'라는 가족 AI 비서야. 친근한 반말로 대답해.
-                [기능 실행 규칙]
+                
+                [기능 실행 규칙 - 중요!]
+                사용자가 "비빔밥 재료 추가해줘"처럼 **요리의 재료**를 장보기에 넣으라고 하면, **절대로** "비빔밥 재료"라고 뭉뚱그려 적지 마.
+                대신 **실제 필요한 재료들(예: 콩나물, 시금치, 고추장 등)**을 찾아서 아래 3번 규칙(add_shopping_multi)으로 출력해줘.
+                
                 1. 일정 추가: {"action":"add_event", "date":"YYYY-MM-DD", "title":"내용"} (오늘:${new Date().toISOString().split('T')[0]})
-                2. 장보기 추가: {"action":"add_shopping", "item":"물건"}
-                3. 그 외: 그냥 텍스트 대화.
+                2. 단일 물건 추가: {"action":"add_shopping", "item":"물건이름"}
+                3. 요리 재료/여러 물건 추가: {"action":"add_shopping_multi", "items":["재료1", "재료2", "재료3"]} 
+                   -> 예: "김치찌개 재료 담아줘" -> items: ["김치", "돼지고기", "두부", "대파"]
+                4. 그 외: JSON 없이 친근한 텍스트로 대화.
             `;
 
             let aiText = "";
             let success = false;
 
-            // 모델 순차 시도 (에러 발생 시 다음 모델로 자동 전환)
+            // 모델 순차 시도
             for (const model of AI_MODELS) {
                 try {
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
@@ -345,7 +303,7 @@
                         const data = await res.json();
                         aiText = data.candidates[0].content.parts[0].text;
                         success = true;
-                        break; // 성공하면 루프 탈출
+                        break; 
                     }
                 } catch(e) {
                     console.warn(`Model ${model} failed, trying next...`);
@@ -362,7 +320,7 @@
             // JSON 파싱 (기능 실행)
             if (aiText.includes('{"action"')) {
                 try {
-                    const match = aiText.match(/\{"action":.*?\}/);
+                    const match = aiText.match(/\{"action":.*?\}/) || aiText.match(/\{"action":.*?\]\}/);
                     if (match) {
                         const cmd = JSON.parse(match[0]);
                         aiText = aiText.replace(match[0], "");
@@ -373,6 +331,9 @@
                         } else if (cmd.action === 'add_shopping') {
                             db.collection("family_shopping").add({ text: cmd.item, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                             aiText += `\n🛒 <b>${cmd.item}</b> 추가 완료!`;
+                        } else if (cmd.action === 'add_shopping_multi') {
+                            cmd.items.forEach(i => db.collection("family_shopping").add({ text: i, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() }));
+                            aiText += `\n🛒 <b>${cmd.items.join(", ")}</b> 모두 담았어!`;
                         }
                     }
                 } catch (e) {}
@@ -477,6 +438,35 @@
             .catch(e=>{alert("오류!");btn.disabled=false;btn.innerText="추가";});
         }
         function delFamily(id){if(confirm("삭제?"))db.collection("family_members").doc(id).delete();}
+
+        function loadShopping() {
+            db.collection("family_shopping").orderBy("timestamp", "desc").onSnapshot(snap => {
+                const list = document.getElementById('shopList');
+                list.innerHTML = "";
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const checkedClass = d.checked ? "checked" : "";
+                    const checkColor = d.checked ? "on" : "";
+                    list.innerHTML += `
+                    <div class="shop-item ${checkedClass}">
+                        <div style="display:flex; align-items:center;">
+                            <div class="shop-check ${checkColor}" onclick="toggleShop('${doc.id}', ${!d.checked})"><i class="fa-solid fa-check" style="color:white; font-size:12px;"></i></div>
+                            <span>${d.text}</span>
+                        </div>
+                        <i class="fa-solid fa-times shop-del" onclick="delShop('${doc.id}')"></i>
+                    </div>`;
+                });
+            });
+        }
+        function addShopItem() {
+            const inp = document.getElementById('shopInput');
+            if(inp.value.trim()) {
+                db.collection("family_shopping").add({ text: inp.value, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                inp.value = '';
+            }
+        }
+        function toggleShop(id, stat) { db.collection("family_shopping").doc(id).update({ checked: stat }); }
+        function delShop(id) { if(confirm("삭제?")) db.collection("family_shopping").doc(id).delete(); }
 
         window.changeTab=function(id,el){document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');window.scrollTo(0,0);}
         
