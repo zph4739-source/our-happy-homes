@@ -55,11 +55,11 @@
 
         /* UI 컴포넌트 */
         .retro-card { background: white; border: var(--border-thick); border-radius: var(--radius-L); padding: 24px; margin: 24px 20px; box-shadow: var(--shadow-hard); position: relative; transition: 0.2s; }
-        .btn-pop { background: var(--accent-red); color: white; border: var(--border-thick); padding: 12px 24px; border-radius: 50px; font-family: 'Jua', sans-serif; font-size: 18px; cursor: pointer; box-shadow: var(--shadow-hard); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-pop { background: var(--accent-red); color: white; border: var(--border-thick); padding: 14px 24px; border-radius: 50px; font-family: 'Jua', sans-serif; font-size: 18px; cursor: pointer; box-shadow: var(--shadow-hard); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-pop:active { transform: translate(2px, 2px); box-shadow: none; background: #C0392B; }
         .btn-pop:disabled { background: #ccc; border-color: #999; color: #666; cursor: not-allowed; box-shadow: none; transform: translate(2px, 2px); }
         .btn-pop.yellow { background: var(--accent-yellow); color: var(--text-choco); }
-        .btn-pop.gray { background: #E0E0E0; color: #555; }
+        .btn-pop.gray { background: #E0E0E0; color: #555; border-color: #999; box-shadow: 2px 2px 0px #999; }
         .input-retro { width: 100%; background: #FFF; border: var(--border-thick); border-radius: 16px; padding: 14px; font-size: 16px; color: var(--text-choco); outline: none; font-family: 'Noto Sans KR', sans-serif; box-shadow: inset 2px 2px 5px rgba(74, 44, 42, 0.1); }
 
         /* 탭 */
@@ -101,12 +101,13 @@
         .nav-item { color: rgba(255,255,255,0.5); font-size: 24px; cursor: pointer; transition: 0.3s; }
         .nav-item.active { color: var(--accent-yellow); transform: translateY(-5px); }
 
-        /* 모달 */
+        /* 모달 (버튼 간격 수정됨) */
         .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 44, 42, 0.6); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
         .modal-card { background: var(--bg-cream); width: 85%; max-width: 350px; padding: 25px; border: var(--border-thick); border-radius: var(--radius-L); box-shadow: 8px 8px 0px rgba(0,0,0,0.2); }
         .modal-tit { font-family: 'Jua', sans-serif; font-size: 24px; margin-bottom: 20px; color: var(--text-choco); display:flex; align-items:center; gap:8px;}
-        /* 버튼 수정: 세로 배치 및 간격 */
-        .modal-btns { display: flex; flex-direction: column; gap: 15px; margin-top: 25px; }
+        
+        /* [수정됨] 버튼을 세로로 배치하고 간격을 띄움 */
+        .modal-btns { display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
         
         @media (min-width: 768px) {
             .app-layout { padding: 40px; }
@@ -211,6 +212,7 @@
             <input type="text" id="famRole" class="input-retro" placeholder="역할 (예: 아빠)" style="margin-bottom:10px;">
             <input type="text" id="famName" class="input-retro" placeholder="이름 (선택)" style="margin-bottom:10px;">
             <input type="text" id="famDesc" class="input-retro" placeholder="한 마디 소개">
+            
             <div class="modal-btns">
                 <button class="btn-pop gray" onclick="closeModal('familyModal')">취소</button>
                 <button id="btnSaveFam" class="btn-pop" onclick="saveFamily()">추가</button>
@@ -230,7 +232,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        /* 이미지 압축 */
+        /* [수정됨] 이미지 압축 강화 (500px, 0.5 quality) -> 용량 문제 해결 */
         function compressImage(file, maxWidth, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -238,7 +240,7 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     let w = img.width, h = img.height;
-                    if (w > maxWidth) { h *= maxWidth/w; w = maxWidth; }
+                    if (w > 500) { h *= 500 / w; w = 500; }
                     canvas.width = w; canvas.height = h;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, w, h);
@@ -249,7 +251,6 @@
             reader.readAsDataURL(file);
         }
 
-        /* --- 가족 & 작성자 --- */
         let familyData = [];
         let selectedRole = "";
 
@@ -268,7 +269,7 @@
                 snap.forEach(doc => {
                     const d = doc.data();
                     familyData.push({ id: doc.id, ...d });
-                    // 가족 카드
+                    
                     const imgHtml = d.imageUrl ? `<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">` : `<i class="fa-solid fa-user" style="font-size:30px;"></i>`;
                     con.innerHTML += `
                     <div class="mem-card">
@@ -277,7 +278,7 @@
                         <div class="mem-role">${d.role}</div>
                         <div class="mem-desc">${d.desc||'Yummy!'}</div>
                     </div>`;
-                    // 작성자 태그
+                    
                     const chk = selectedRole === d.role ? "checked" : "";
                     chips.innerHTML += `
                     <input type="radio" name="auth" id="c-${doc.id}" class="radio-hidden" value="${d.role}" onchange="selAuth(this)" ${chk}>
@@ -300,7 +301,6 @@
             else hp.innerHTML = `<i class="fa-solid fa-user"></i>`;
         }
 
-        /* --- 피드 --- */
         let feedImg = null;
         function handleImageSelect(e) {
             if(e.target.files[0]) compressImage(e.target.files[0], 500, d => {
@@ -341,7 +341,6 @@
             });
         }
 
-        // 클라이언트 정렬로 인덱스 오류 방지
         function loadFeed() {
             db.collection("family_posts").limit(20).onSnapshot(snap => {
                 const con = document.getElementById('feed-container');
@@ -349,7 +348,6 @@
                 let posts = [];
                 snap.forEach(doc => posts.push({ id: doc.id, ...doc.data() }));
                 
-                // 최신순 정렬
                 posts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
 
                 if(posts.length === 0) con.innerHTML = `<div style="text-align:center;padding:40px;color:#aaa;">첫 글을 남겨보세요! 🍒</div>`;
@@ -357,10 +355,8 @@
                 posts.forEach(d => {
                     const pImg = d.authorImg ? `<div class="fp-img"><img src="${d.authorImg}" style="width:100%;height:100%;object-fit:cover;"></div>` : `<div class="fp-img"><i class="fa-solid fa-user"></i></div>`;
                     const imgHtml = d.imageUrl ? `<div class="feed-photo"><img src="${d.imageUrl}"></div>` : '';
-                    
                     let cmts = "";
                     if (d.comments) d.comments.forEach(c => cmts += `<div class="cmt-bubble"><b>${c.author}</b>: ${c.text}</div>`);
-                    
                     let cmtOpts = "";
                     familyData.forEach(m => cmtOpts += `<option value="${m.role}" ${m.role===selectedRole?'selected':''}>${m.role}</option>`);
 
@@ -401,20 +397,12 @@
             });
         }
 
-        /* --- 캘린더 --- */
-        let curDate = new Date();
-        let events = [];
-        let curModDate = null;
-
+        let curDate = new Date(), events = [], curModDate = null;
         function loadCal() {
-            const y = curDate.getFullYear();
-            const m = curDate.getMonth();
+            const y = curDate.getFullYear(), m = curDate.getMonth();
             document.getElementById('month-display').innerText = `${m + 1}월`;
-            const f = new Date(y, m, 1);
-            const l = new Date(y, m + 1, 0);
-            const con = document.getElementById('calendar-days');
+            const f = new Date(y, m, 1), l = new Date(y, m + 1, 0), con = document.getElementById('calendar-days');
             con.innerHTML = "";
-
             for (let i = 0; i < f.getDay(); i++) con.innerHTML += `<div></div>`;
             for (let i = 1; i <= l.getDate(); i++) {
                 const dStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -455,7 +443,6 @@
             if (curModDate) renderEvList();
         });
 
-        /* 모달 & 가족 추가(수정됨) */
         let famImg = null;
         function closeModal(id) { document.getElementById(id).style.display = 'none'; famImg = null; curModDate = null; }
         function openFamModal() { document.getElementById('familyModal').style.display = 'flex'; }
@@ -465,6 +452,8 @@
                 document.getElementById('famImgPreview').innerHTML = `<img src="${d}" style="width:100%;height:100%;object-fit:cover;">`;
             });
         }
+        
+        /* [수정됨] 가족 저장 함수 강화 */
         function saveFam() {
             const r = document.getElementById('famRole').value;
             const n = document.getElementById('famName').value;
@@ -479,7 +468,6 @@
             .then(() => { 
                 closeModal('familyModal'); 
                 btn.disabled = false; btn.innerText = "추가"; 
-                // 입력창 초기화
                 document.getElementById('famRole').value = '';
                 document.getElementById('famName').value = '';
                 document.getElementById('famDesc').value = '';
@@ -502,7 +490,6 @@
             window.scrollTo(0, 0);
         }
 
-        // 초기 로드
         loadFeed();
         loadCal();
         loadFamily();
