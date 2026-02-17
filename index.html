@@ -443,6 +443,7 @@
             if (curModDate) renderEvList();
         });
 
+        /* 모달 & 가족 추가(수정됨) */
         let famImg = null;
         function closeModal(id) { document.getElementById(id).style.display = 'none'; famImg = null; curModDate = null; }
         function openFamModal() { document.getElementById('familyModal').style.display = 'flex'; }
@@ -468,6 +469,7 @@
             .then(() => { 
                 closeModal('familyModal'); 
                 btn.disabled = false; btn.innerText = "추가"; 
+                // 입력창 초기화
                 document.getElementById('famRole').value = '';
                 document.getElementById('famName').value = '';
                 document.getElementById('famDesc').value = '';
@@ -476,7 +478,7 @@
             })
             .catch((err) => { 
                 console.error(err);
-                alert("오류가 발생했습니다!"); 
+                alert("오류가 발생했습니다: " + err.message); 
                 btn.disabled = false; btn.innerText = "추가"; 
             });
         }
@@ -496,3 +498,5 @@
     </script>
 </body>
 </html>
+
+
