@@ -215,7 +215,7 @@
             
             <div class="modal-btns">
                 <button class="btn-pop gray" onclick="closeModal('familyModal')">취소</button>
-                <button id="btnSaveFam" class="btn-pop" onclick="saveFamily()">추가</button>
+                <button id="btnSaveFam" class="btn-pop" onclick="saveFam()">추가</button>
             </div>
         </div>
     </div>
@@ -469,7 +469,6 @@
             .then(() => { 
                 closeModal('familyModal'); 
                 btn.disabled = false; btn.innerText = "추가"; 
-                // 입력창 초기화
                 document.getElementById('famRole').value = '';
                 document.getElementById('famName').value = '';
                 document.getElementById('famDesc').value = '';
@@ -478,7 +477,7 @@
             })
             .catch((err) => { 
                 console.error(err);
-                alert("오류가 발생했습니다: " + err.message); 
+                alert("오류가 발생했습니다!"); 
                 btn.disabled = false; btn.innerText = "추가"; 
             });
         }
@@ -498,5 +497,3 @@
     </script>
 </body>
 </html>
-
-
