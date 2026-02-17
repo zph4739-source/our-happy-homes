@@ -245,7 +245,7 @@
     </div>
 
     <script>
-        // 🔑 API Key (사용자 제공)
+        // 🔑 API Key
         const GEMINI_API_KEY = "AIzaSyDCJvEiVEYrCI5x7_YDOipEG5mUFZVKmkI";
 
         // Firebase Config
@@ -262,7 +262,54 @@
 
         function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
 
-        /* --- [AI 핵심] 자동 모델 우회 시스템 & 강력해진 프롬프트 --- */
+        /* --- [AI 핵심] 오프라인 백업 두뇌 (규칙 기반) --- */
+        // API가 429(Too Many Requests) 등으로 죽었을 때 대신 대답하는 로직
+        const recipes = {
+            "떡볶이": ["떡", "어묵", "대파", "고추장", "설탕"],
+            "김치찌개": ["김치", "돼지고기", "두부", "대파"],
+            "된장찌개": ["된장", "호박", "두부", "양파"],
+            "미역국": ["미역", "소고기", "참기름"],
+            "카레": ["카레가루", "감자", "당근", "양파"],
+            "라면": ["라면", "계란", "파"],
+            "비빔밥": ["콩나물", "시금치", "고추장", "계란", "참기름"]
+        };
+
+        function fallbackAI(text) {
+            let reply = "음.. 그건 제가 잘 모르는 내용이에요. '떡볶이 재료'나 '일정 추가'라고 말해보세요!";
+            let action = null;
+
+            // 1. 요리 & 장보기
+            for (const food in recipes) {
+                if (text.includes(food)) {
+                    action = { action: "add_shopping_multi", items: recipes[food] };
+                    reply = `👨‍🍳 (오프라인 모드) <b>${food}</b> 재료를 장보기에 담았어요!`;
+                    break;
+                }
+            }
+            if (!action && (text.includes("장보기") || text.includes("담아") || text.includes("추가"))) {
+                const item = text.replace("장보기","").replace("추가","").replace("해줘","").replace("담아줘","").replace("에","").trim();
+                if(item) {
+                    action = { action: "add_shopping", item: item };
+                    reply = `🛒 (오프라인 모드) <b>${item}</b> 추가 완료!`;
+                }
+            }
+
+            // 2. 일정
+            if (text.includes("일정")) {
+                const today = new Date();
+                let date = today.toISOString().split('T')[0];
+                if(text.includes("내일")) { today.setDate(today.getDate()+1); date = today.toISOString().split('T')[0]; }
+                const title = text.replace("일정","").replace("추가","").replace("해줘","").replace("내일","").replace("오늘","").trim();
+                if(title) {
+                    action = { action: "add_event", date: date, title: title };
+                    reply = `📅 (오프라인 모드) <b>${date}</b>에 <b>${title}</b> 등록!`;
+                }
+            }
+
+            return { text: reply, action: action };
+        }
+
+        /* --- [AI 핵심] 자동 모델 우회 시스템 (2.5 -> 2.0 -> 1.5) --- */
         const AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
         async function sendChat() {
@@ -277,15 +324,13 @@
             const systemPrompt = `
                 너는 '체리'라는 가족 AI 비서야. 친근한 반말로 대답해.
                 
-                [기능 실행 규칙 - 중요!]
-                사용자가 "비빔밥 재료 추가해줘"처럼 **요리의 재료**를 장보기에 넣으라고 하면, **절대로** "비빔밥 재료"라고 뭉뚱그려 적지 마.
-                대신 **실제 필요한 재료들(예: 콩나물, 시금치, 고추장 등)**을 찾아서 아래 3번 규칙(add_shopping_multi)으로 출력해줘.
-                
+                [기능 실행 규칙]
                 1. 일정 추가: {"action":"add_event", "date":"YYYY-MM-DD", "title":"내용"} (오늘:${new Date().toISOString().split('T')[0]})
-                2. 단일 물건 추가: {"action":"add_shopping", "item":"물건이름"}
-                3. 요리 재료/여러 물건 추가: {"action":"add_shopping_multi", "items":["재료1", "재료2", "재료3"]} 
-                   -> 예: "김치찌개 재료 담아줘" -> items: ["김치", "돼지고기", "두부", "대파"]
-                4. 그 외: JSON 없이 친근한 텍스트로 대화.
+                2. 장보기 추가: {"action":"add_shopping", "item":"물건"}
+                3. 여러개 추가: {"action":"add_shopping_multi", "items":["물건1", "물건2"]}
+                4. 그 외: 그냥 텍스트 대화.
+                
+                중요: "비빔밥 재료 추가" 같은 요청이 오면 "비빔밥 재료"라고 쓰지 말고 실제 재료(콩나물, 시금치 등)를 items에 담아줘.
             `;
 
             let aiText = "";
@@ -299,25 +344,41 @@
                         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: systemPrompt + "\nUser: " + text }] }] })
                     });
                     
-                    if(res.ok) {
-                        const data = await res.json();
-                        aiText = data.candidates[0].content.parts[0].text;
-                        success = true;
-                        break; 
-                    }
+                    if (res.status === 429) throw new Error("Too Many Requests"); // 429 에러 캐치
+                    if (!res.ok) throw new Error("API Error");
+
+                    const data = await res.json();
+                    aiText = data.candidates[0].content.parts[0].text;
+                    success = true;
+                    break; 
                 } catch(e) {
-                    console.warn(`Model ${model} failed, trying next...`);
+                    console.warn(`Model ${model} failed (${e.message}), trying next...`);
                 }
             }
 
             document.getElementById(loadingId).remove();
 
+            // 실패 시 -> 백업 AI 실행 (오프라인 모드)
             if(!success) {
-                appendMessage("미안해, 지금 머리가 너무 아파서 연결이 안 돼 😭 (모든 모델 실패)", 'bot');
+                console.log("All API models failed. Switching to Fallback AI.");
+                const fb = fallbackAI(text);
+                aiText = fb.text;
+                
+                // 백업 액션 실행
+                if (fb.action) {
+                    if (fb.action.action === 'add_shopping_multi') {
+                        fb.action.items.forEach(i => db.collection("family_shopping").add({ text: i, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() }));
+                    } else if (fb.action.action === 'add_shopping') {
+                        db.collection("family_shopping").add({ text: fb.action.item, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    } else if (fb.action.action === 'add_event') {
+                        db.collection("family_events").add({ date: fb.action.date, title: fb.action.title, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    }
+                }
+                appendMessage(aiText, 'bot');
                 return;
             }
 
-            // JSON 파싱 (기능 실행)
+            // API 성공 시 JSON 파싱
             if (aiText.includes('{"action"')) {
                 try {
                     const match = aiText.match(/\{"action":.*?\}/) || aiText.match(/\{"action":.*?\]\}/);
