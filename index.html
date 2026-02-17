@@ -10,6 +10,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         /* [Theme: Retro 3D Cafe] */
@@ -71,7 +72,7 @@
         .shop-check.on { background: var(--accent-red); }
         .shop-del { color: #aaa; cursor: pointer; padding: 5px; }
 
-        /* 챗봇 스타일 (모든 탭 위에 뜸) */
+        /* 챗봇 스타일 */
         .chatbot-btn {
             position: fixed; bottom: 100px; right: 20px; width: 60px; height: 60px;
             background: var(--accent-red); border: var(--border-thick); border-radius: 50%;
@@ -242,21 +243,15 @@
 
     <div class="chatbot-btn" onclick="toggleChat()"><i class="fa-solid fa-robot"></i></div>
     <div class="chat-window" id="chatWindow">
-        <div class="chat-head">🍒 만능 살림꾼 체리 <i class="fa-solid fa-times" style="cursor:pointer;" onclick="toggleChat()"></i></div>
+        <div class="chat-head">🍒 AI 체리 <i class="fa-solid fa-times" style="cursor:pointer;" onclick="toggleChat()"></i></div>
         <div class="chat-body" id="chatBody">
             <div class="chat-msg msg-bot">
-                안녕하세요! 우리 가족 전용 AI <b>체리</b>입니다! 🍒<br><br>
-                <b>이런 걸 할 수 있어요!</b><br>
-                🛒 "김치찌개 재료 담아줘"<br>
-                📅 "내일 저녁 외식 일정 잡아줘"<br>
-                🗑️ "내일 일정 삭제해줘"<br>
-                ☀️ "여름인데 뭐 먹을까?"<br>
-                ✌️ "가위바위보 하자"<br>
-                💊 "건강 상식 알려줘"
+                안녕하세요! 우리 가족 전용 AI <b>체리</b>입니다! 🍒<br>
+                무엇이든 물어보세요! (예: "오늘 저녁 뭐 먹지?")
             </div>
         </div>
         <div class="chat-input-area">
-            <input type="text" id="chatInput" class="chat-inp" placeholder="체리에게 부탁해 보세요!" onkeydown="if(event.key==='Enter')sendChat()">
+            <input type="text" id="chatInput" class="chat-inp" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter')sendChat()">
             <button class="btn-pop" style="width:auto; padding:5px 15px; font-size:14px;" onclick="sendChat()">전송</button>
         </div>
     </div>
@@ -297,6 +292,10 @@
     </div>
 
     <script>
+        // 🔑 API Key (사용자 제공)
+        const GEMINI_API_KEY = "AIzaSyDCJvEiVEYrCI5x7_YDOipEG5mUFZVKmkI";
+
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",
             authDomain: "our-family-home.firebaseapp.com",
@@ -310,245 +309,92 @@
 
         function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
 
-        /* ================================
-           [AI 체리 3.0] 지식 베이스
-           ================================ */
-        // 1. 방대한 레시피 데이터
-        const recipes = {
-            "떡볶이": ["떡", "어묵", "대파", "고추장", "설탕", "라면사리"],
-            "김치찌개": ["묵은지", "돼지고기", "두부", "대파", "다진마늘"],
-            "된장찌개": ["된장", "애호박", "두부", "양파", "감자", "청양고추"],
-            "부대찌개": ["햄", "소시지", "베이크드빈", "김치", "라면사리", "치즈"],
-            "미역국": ["건미역", "소고기(양지)", "참기름", "국간장", "다진마늘"],
-            "제육볶음": ["돼지고기(앞다리)", "고추장", "고춧가루", "양파", "대파", "당근"],
-            "불고기": ["소고기(불고기용)", "간장", "설탕", "버섯", "당면", "양파"],
-            "비빔밥": ["콩나물", "시금치", "고사리", "계란", "고추장", "참기름"],
-            "카레": ["카레가루", "감자", "양파", "당근", "돼지고기/닭고기"],
-            "파스타": ["파스타면", "토마토소스/크림소스", "마늘", "베이컨", "양파", "브로콜리"],
-            "라면": ["라면", "계란", "대파"],
-            "삼겹살": ["삼겹살", "상추", "깻잎", "쌈장", "마늘", "버섯"],
-            "계란말이": ["계란", "대파", "당근", "소금"],
-            "볶음밥": ["밥", "계란", "햄", "대파", "굴소스"],
-            "닭볶음탕": ["닭고기", "감자", "당근", "양파", "고추장", "고춧가루"],
-            "순두부찌개": ["순두부", "바지락", "계란", "대파", "고추기름"],
-            "오징어볶음": ["오징어", "양파", "대파", "당근", "고추장"],
-            "잡채": ["당면", "시금치", "당근", "양파", "버섯", "고기"],
-            "갈비찜": ["갈비", "무", "당근", "밤", "대추", "간장"],
-            "콩나물국": ["콩나물", "대파", "다진마늘", "새우젓"],
-            "감자전": ["감자", "소금", "식용유"],
-            "김치전": ["김치", "부침가루", "설탕", "식용유"],
-            "어묵탕": ["어묵", "무", "대파", "멸치육수", "간장"]
-        };
+        /* --- [AI 핵심] 모델 자동 선택 로직 (2.5 -> 2.0 -> 1.5) --- */
+        // 최신 모델부터 구형 모델까지 순서대로 시도합니다.
+        const AI_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
-        // 2. 계절 음식 데이터
-        const seasonalFoods = {
-            "봄": ["봄동겉절이", "달래된장찌개", "쑥국", "쭈꾸미볶음", "딸기"],
-            "여름": ["냉면", "콩국수", "삼계탕", "수박", "오이냉국", "비빔면"],
-            "가을": ["전어구이", "대하구이", "꽃게탕", "송편", "고구마"],
-            "겨울": ["군고구마", "호빵", "어묵탕", "귤", "동태찌개", "만두국"]
-        };
-
-        // 3. 지식창고 (건강, 육아, 감정)
-        const knowledgeBase = {
-            health: [
-                "하루 물 8잔(약 2L)을 마시면 피부도 좋아지고 신진대사가 활발해져요! 💧",
-                "식사 후 바로 눕지 말고 20분 정도 가볍게 산책하면 소화에 아주 좋아요. 🚶",
-                "잠들기 1시간 전부터는 스마트폰을 멀리해야 꿀잠을 잘 수 있대요. 😴",
-                "비타민D 합성을 위해 하루 15분 정도 햇볕을 쬐어주세요. ☀️",
-                "스트레칭은 굳은 몸을 풀어주고 혈액순환을 도와줍니다. 지금 바로 기지개 켜보세요! 🙆"
-            ],
-            parenting: [
-                "아이의 말을 끊지 않고 끝까지 들어주는 '경청'이 최고의 대화법이에요. 👂",
-                "결과보다 과정을 칭찬해주면 아이의 자존감이 쑥쑥 자라요! 👍",
-                "아이와 함께 요리하거나 청소하는 것도 훌륭한 놀이가 될 수 있어요. 🧹",
-                "하루 10분이라도 온전히 아이에게만 집중하는 시간을 가져보세요. ❤️"
-            ],
-            empathy: {
-                sad: "저런, 속상한 일이 있으셨나요? 맛있는 거 먹고 기운 차리세요! 토닥토닥. 🍫",
-                tired: "오늘 하루 정말 고생 많으셨어요. 따뜻한 물로 샤워하고 푹 쉬세요. 🛁",
-                happy: "와! 좋은 일이 있으신가 봐요! 저까지 기분이 좋아지네요! 😆🎉",
-                angry: "화나는 일은 숨을 깊게 들이마시고 내쉬어 보세요. 후~ 😤"
-            }
-        };
-
-        function toggleChat() { 
-            const chatWin = document.getElementById('chatWindow');
-            chatWin.style.display = chatWin.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        // 날짜 파서
-        function parseDate(text) {
-            const today = new Date();
-            if(text.includes("오늘")) return today;
-            if(text.includes("내일")) { today.setDate(today.getDate()+1); return today; }
-            if(text.includes("모레")) { today.setDate(today.getDate()+2); return today; }
-            return null;
-        }
-
-        // 계절 판별
-        function getSeason() {
-            const m = new Date().getMonth() + 1;
-            if (m >= 3 && m <= 5) return "봄";
-            if (m >= 6 && m <= 8) return "여름";
-            if (m >= 9 && m <= 11) return "가을";
-            return "겨울";
-        }
-
-        function sendChat() {
-            const inp = document.getElementById('chatInput');
-            const txt = inp.value.trim();
-            if(!txt) return;
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if(!text) return;
             
-            const body = document.getElementById('chatBody');
-            body.innerHTML += `<div class="chat-msg msg-user">${txt}</div>`;
-            inp.value = '';
-            body.scrollTop = body.scrollHeight;
+            appendMessage(text, 'user');
+            input.value = '';
+            const loadingId = appendLoading();
 
-            const loadingId = "loading-" + Date.now();
-            body.innerHTML += `<div class="chat-msg msg-bot typing-indicator" id="${loadingId}"><span></span><span></span><span></span></div>`;
-            body.scrollTop = body.scrollHeight;
+            const systemPrompt = `
+                너는 '체리'라는 가족 AI 비서야. 친근한 반말로 대답해.
+                [기능 실행 규칙]
+                1. 일정 추가: {"action":"add_event", "date":"YYYY-MM-DD", "title":"내용"} (오늘:${new Date().toISOString().split('T')[0]})
+                2. 장보기 추가: {"action":"add_shopping", "item":"물건"}
+                3. 그 외: 그냥 텍스트 대화.
+            `;
 
-            setTimeout(() => {
-                document.getElementById(loadingId).remove();
-                let reply = "음.. 조금 더 구체적으로 말씀해주시겠어요? (예: 메뉴 추천, 일정 추가)";
-                
-                // 1. 일상/감정
-                if (txt.includes("안녕")) reply = "반가워요! 우리 가족의 행복 도우미 체리입니다! 🍒";
-                else if (txt.includes("사랑해")) reply = "저도요! 우리 가족 모두 행복했으면 좋겠어요! ❤️";
-                else if (txt.includes("고마워")) reply = "별말씀을요! 언제든 도와드릴게요. 😊";
-                else if (txt.includes("힘들") || txt.includes("지쳐") || txt.includes("피곤")) reply = knowledgeBase.empathy.tired;
-                else if (txt.includes("슬퍼") || txt.includes("우울")) reply = knowledgeBase.empathy.sad;
-                else if (txt.includes("기분 좋아") || txt.includes("행복")) reply = knowledgeBase.empathy.happy;
-                else if (txt.includes("화나") || txt.includes("짜증")) reply = knowledgeBase.empathy.angry;
+            let aiText = "";
+            let success = false;
 
-                // 2. 미니게임 (가위바위보)
-                else if (txt.includes("가위바위보")) {
-                    const rps = ["가위 ✌️", "바위 ✊", "보 🖐"];
-                    const result = rps[Math.floor(Math.random() * rps.length)];
-                    reply = `안 내면 진 거! 가위~ 바위~ <b>${result}</b>!! 제가 이겼나요? 😎`;
-                }
-
-                // 3. 지식 (건강, 육아)
-                else if (txt.includes("건강") || txt.includes("상식")) {
-                    reply = "💪 <b>체리의 건강 꿀팁:</b><br>" + knowledgeBase.health[Math.floor(Math.random() * knowledgeBase.health.length)];
-                }
-                else if (txt.includes("육아") || txt.includes("아이")) {
-                    reply = "👶 <b>체리의 육아 메모:</b><br>" + knowledgeBase.parenting[Math.floor(Math.random() * knowledgeBase.parenting.length)];
-                }
-
-                // 4. 메뉴 추천 (계절/랜덤)
-                else if (txt.includes("메뉴") || txt.includes("뭐 먹지") || txt.includes("추천")) {
-                    const season = getSeason();
-                    if(txt.includes("계절") || txt.includes("날씨") || Math.random() > 0.5) {
-                        const seasonalMenu = seasonalFoods[season];
-                        const pick = seasonalMenu[Math.floor(Math.random() * seasonalMenu.length)];
-                        reply = `요즘 같은 <b>${season}</b>에는 <b>${pick}</b> 어떠세요? 입맛이 싹 돌 거예요! 😋`;
-                    } else {
-                        const keys = Object.keys(recipes);
-                        const pick = keys[Math.floor(Math.random() * keys.length)];
-                        reply = `오늘은 <b>${pick}</b> 요리사가 되어보세요! 👨‍🍳`;
+            // 모델 순차 시도 (에러 발생 시 다음 모델로 자동 전환)
+            for (const model of AI_MODELS) {
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: systemPrompt + "\nUser: " + text }] }] })
+                    });
+                    
+                    if(res.ok) {
+                        const data = await res.json();
+                        aiText = data.candidates[0].content.parts[0].text;
+                        success = true;
+                        break; // 성공하면 루프 탈출
                     }
+                } catch(e) {
+                    console.warn(`Model ${model} failed, trying next...`);
                 }
-                
-                // 5. 요리 재료 & 장보기
-                else if ((txt.includes("먹을") || txt.includes("해줘") || txt.includes("추가")) && (txt.includes("재료") || txt.includes("장보기") || txt.includes("담아"))) {
-                    let foundFood = null;
-                    for (const food in recipes) {
-                        if (txt.includes(food)) { foundFood = food; break; }
-                    }
-
-                    if (foundFood) {
-                        const ingredients = recipes[foundFood];
-                        ingredients.forEach(item => {
-                            db.collection("family_shopping").add({ text: item, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                        });
-                        reply = `📋 <b>${foundFood}</b> 접수 완료!<br>필요한 재료 <b>[${ingredients.join(", ")}]</b>를 장보기 목록에 모두 담았습니다!`;
-                    } else {
-                        const item = txt.replace("장보기", "").replace("추가", "").replace("해줘", "").replace("담아줘", "").replace("에", "").trim();
-                        if(item && item.length > 0 && item.length < 20) {
-                             db.collection("family_shopping").add({ text: item, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                             reply = `🛒 <b>${item}</b> 메모했습니다!`;
-                        }
-                    }
-                }
-
-                // 6. 일정 추가
-                else if ((txt.includes("일정") || txt.includes("약속")) && (txt.includes("추가") || txt.includes("잡아"))) {
-                    const targetDate = parseDate(txt);
-                    if(targetDate) {
-                        const dStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
-                        const title = txt.replace("일정", "").replace("추가", "").replace("해줘", "").replace("잡아줘", "").replace("내일", "").replace("오늘", "").replace("모레", "").trim();
-                        if(title) {
-                            db.collection("family_events").add({ date: dStr, title: title, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                            reply = `📅 <b>${dStr}</b>에 <b>"${title}"</b> 일정을 등록했습니다!`;
-                        } else {
-                            reply = "일정 내용을 함께 말씀해주세요. (예: 내일 저녁 약속 추가해줘)";
-                        }
-                    } else {
-                        reply = "언제 일정인가요? (오늘, 내일, 모레 중 하나를 말해주세요)";
-                    }
-                }
-
-                // 7. 일정 삭제
-                else if ((txt.includes("일정") || txt.includes("약속")) && (txt.includes("취소") || txt.includes("삭제") || txt.includes("지워"))) {
-                    const targetDate = parseDate(txt);
-                    if(targetDate) {
-                        const dStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
-                        db.collection("family_events").where("date", "==", dStr).get().then(snap => {
-                            if(snap.empty) {
-                                body.innerHTML += `<div class="chat-msg msg-bot">📅 ${dStr}에는 일정이 없어요.</div>`;
-                            } else {
-                                let cnt = 0;
-                                snap.forEach(doc => {
-                                    db.collection("family_events").doc(doc.id).delete();
-                                    cnt++;
-                                });
-                                body.innerHTML += `<div class="chat-msg msg-bot">🗑️ ${dStr}의 일정 ${cnt}개를 모두 삭제했습니다.</div>`;
-                                body.scrollTop = body.scrollHeight;
-                            }
-                        });
-                        return;
-                    } else {
-                        reply = "언제 일정을 지울까요? (예: 내일 일정 삭제)";
-                    }
-                }
-
-                body.innerHTML += `<div class="chat-msg msg-bot">${reply}</div>`;
-                body.scrollTop = body.scrollHeight;
-            }, 700);
-        }
-
-        /* --- 장보기 --- */
-        function loadShopping() {
-            db.collection("family_shopping").orderBy("timestamp", "desc").onSnapshot(snap => {
-                const list = document.getElementById('shopList');
-                list.innerHTML = "";
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const checkedClass = d.checked ? "checked" : "";
-                    const checkColor = d.checked ? "on" : "";
-                    list.innerHTML += `
-                    <div class="shop-item ${checkedClass}">
-                        <div style="display:flex; align-items:center;">
-                            <div class="shop-check ${checkColor}" onclick="toggleShop('${doc.id}', ${!d.checked})"><i class="fa-solid fa-check" style="color:white; font-size:12px;"></i></div>
-                            <span>${d.text}</span>
-                        </div>
-                        <i class="fa-solid fa-times shop-del" onclick="delShop('${doc.id}')"></i>
-                    </div>`;
-                });
-            });
-        }
-        function addShopItem() {
-            const inp = document.getElementById('shopInput');
-            if(inp.value.trim()) {
-                db.collection("family_shopping").add({ text: inp.value, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                inp.value = '';
             }
-        }
-        function toggleShop(id, stat) { db.collection("family_shopping").doc(id).update({ checked: stat }); }
-        function delShop(id) { if(confirm("삭제?")) db.collection("family_shopping").doc(id).delete(); }
 
-        /* 기존 로직들 (가족, 피드, 캘린더 등은 그대로 유지) */
+            document.getElementById(loadingId).remove();
+
+            if(!success) {
+                appendMessage("미안해, 지금 머리가 너무 아파서 연결이 안 돼 😭 (모든 모델 실패)", 'bot');
+                return;
+            }
+
+            // JSON 파싱 (기능 실행)
+            if (aiText.includes('{"action"')) {
+                try {
+                    const match = aiText.match(/\{"action":.*?\}/);
+                    if (match) {
+                        const cmd = JSON.parse(match[0]);
+                        aiText = aiText.replace(match[0], "");
+                        
+                        if (cmd.action === 'add_event') {
+                            db.collection("family_events").add({ date: cmd.date, title: cmd.title, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                            aiText += `\n📅 <b>${cmd.date}</b>에 <b>${cmd.title}</b> 일정 등록 완료!`;
+                        } else if (cmd.action === 'add_shopping') {
+                            db.collection("family_shopping").add({ text: cmd.item, checked: false, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                            aiText += `\n🛒 <b>${cmd.item}</b> 추가 완료!`;
+                        }
+                    }
+                } catch (e) {}
+            }
+            appendMessage(aiText, 'bot');
+        }
+
+        function appendMessage(t, s) {
+            const box = document.getElementById('chatBody');
+            box.innerHTML += `<div class="chat-msg msg-${s}">${marked.parse(t)}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+        function appendLoading() {
+            const id = 'load-'+Date.now();
+            document.getElementById('chatBody').innerHTML += `<div class="chat-msg msg-bot typing-indicator" id="${id}"><span></span><span></span><span></span></div>`;
+            return id;
+        }
+        function toggleChat() { 
+            const w = document.getElementById('chatWindow'); w.style.display = w.style.display === 'flex' ? 'none' : 'flex'; 
+        }
+
+        /* --- 기존 기능들 (가족, 캘린더, 장보기) --- */
         let familyData=[], selectedRole="";
         function loadFamily(){
             db.collection("family_members").orderBy("timestamp").onSnapshot(snap=>{
