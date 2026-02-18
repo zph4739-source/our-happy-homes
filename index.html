@@ -208,32 +208,18 @@ const KEYS=[
     "AIzaSyBGVXpnb6jnUSbAQHTh9YixzVHhSkCJseI"
 ];
 let _ki=0;
-// 실패한 키 쿨다운 (키별 마지막 실패 시각)
-const keyCooldown={};
-const COOLDOWN_MS=60000; // 실패 후 1분간 해당 키 건너뜀
 
-function getAvailableKey(){
-    const now=Date.now();
-    for(let i=0;i<KEYS.length;i++){
-        const idx=(_ki+i)%KEYS.length;
-        const lastFail=keyCooldown[idx]||0;
-        if(now-lastFail>COOLDOWN_MS){
-            _ki=(idx+1)%KEYS.length;
-            return{key:KEYS[idx],idx};
-        }
-    }
-    // 모든 키 쿨다운 중이면 가장 오래된 것 사용
+function getNextKey(){
+    const key=KEYS[_ki];
+    const idx=_ki;
     _ki=(_ki+1)%KEYS.length;
-    return{key:KEYS[_ki],idx:_ki};
+    return{key,idx};
 }
-
-function markKeyFailed(idx){keyCooldown[idx]=Date.now();}
-function markKeySuccess(idx){delete keyCooldown[idx];}
 
 /* ═══ ★ 수정된 모델 목록 ═══
    gemini-2.5-flash → 존재하지 않아서 404 발생했음!
    안정적으로 존재하는 모델만 사용 */
-const MODELS=["gemini-2.5-flash","gemini-2.0-flash"];
+const MODELS=["gemini-2.0-flash","gemini-2.5-flash"];
 
 /* ═══ Firebase ═══ */
 const firebaseConfig={apiKey:"AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",authDomain:"our-family-home.firebaseapp.com",projectId:"our-family-home",storageBucket:"our-family-home.firebasestorage.app",messagingSenderId:"446464856858",appId:"1:446464856858:web:344f2c83aeda0ea9ae52a3"};
@@ -282,11 +268,11 @@ async function sendChat(){
     
     let aiText="",ok=false,lastError="";
     
-    // 2) 모델 × 키 조합 시도 (429시 2초 대기 후 다음 키)
+    // 2) 모델 × 키 순차 시도
     for(const model of MODELS){
         if(ok)break;
         for(let attempt=0;attempt<KEYS.length;attempt++){
-            const{key,idx}=getAvailableKey();
+            const{key}=getNextKey();
             try{
                 const controller=new AbortController();
                 const timeout=setTimeout(()=>controller.abort(),10000);
@@ -300,40 +286,23 @@ async function sendChat(){
                 clearTimeout(timeout);
                 
                 if(r.status===429){
-                    markKeyFailed(idx);
                     lastError="429";
-                    await new Promise(r=>setTimeout(r,3000)); // 3초 대기
+                    await new Promise(r=>setTimeout(r,3000));
                     continue;
                 }
-                if(r.status===403){
-                    markKeyFailed(idx);
-                    lastError="403";
-                    continue;
-                }
-                if(r.status===404||r.status===400){
-                    lastError=String(r.status);
-                    break; // 이 모델 안됨 → 다음 모델로
-                }
-                if(!r.ok){
-                    markKeyFailed(idx);
+                if(r.status===400||r.status===403||r.status===404){
                     lastError=String(r.status);
                     continue;
                 }
+                if(!r.ok){lastError=String(r.status);continue;}
                 
                 const d=await r.json();
                 if(d.candidates&&d.candidates[0]&&d.candidates[0].content){
                     aiText=d.candidates[0].content.parts[0].text;
-                    markKeySuccess(idx);
-                    ok=true;
-                    break;
-                } else {
-                    lastError="empty";
-                    continue;
-                }
+                    ok=true;break;
+                }else{lastError="empty";continue;}
             }catch(e){
-                if(e.name==='AbortError'){lastError="timeout";}
-                else{lastError=e.message;}
-                markKeyFailed(idx);
+                lastError=e.name==='AbortError'?"timeout":e.message;
                 continue;
             }
         }
