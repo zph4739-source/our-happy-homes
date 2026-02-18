@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Yummy Family Log</title>
+    <link rel="manifest" href="manifest.json">
+    
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+
     <style>
         :root{--bg-cream:#FFFDF5;--text-choco:#4A2c2A;--accent-red:#D94844;--accent-pink:#FFD1D1;--accent-yellow:#FFD56B;--border-thick:2px solid #4A2c2A;--shadow-hard:4px 4px 0px #4A2c2A;--radius-L:20px;}
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -216,14 +221,50 @@ function getNextKey(){
     return{key,idx};
 }
 
-/* ═══ ★ 수정된 모델 목록 ═══
-   gemini-2.5-flash → 존재하지 않아서 404 발생했음!
-   안정적으로 존재하는 모델만 사용 */
 const MODELS=["gemini-2.0-flash","gemini-2.5-flash"];
 
-/* ═══ Firebase ═══ */
+/* ═══ Firebase & FCM 설정 ═══ */
 const firebaseConfig={apiKey:"AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",authDomain:"our-family-home.firebaseapp.com",projectId:"our-family-home",storageBucket:"our-family-home.firebasestorage.app",messagingSenderId:"446464856858",appId:"1:446464856858:web:344f2c83aeda0ea9ae52a3"};
-firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const messaging = firebase.messaging(); 
+
+/* 🚀 PWA & 푸시 알림 초기화 */
+async function initPush() {
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            console.log('알림 권한 허용됨');
+            const token = await messaging.getToken().catch(()=>null);
+            if (token) {
+                // 토큰 저장 (구독 개념)
+                db.collection('fcm_tokens').doc(token).set({ ts: Date.now() });
+            }
+        }
+    } catch (e) {
+        console.error('알림 설정 실패:', e);
+    }
+}
+
+// 앱 실행 중 알림 수신 처리
+messaging.onMessage((payload) => {
+    // 앱이 켜져있을 땐 토스트나 알림창을 띄웁니다
+    if(payload.notification){
+        const t=payload.notification.title;
+        const b=payload.notification.body;
+        // 간단한 브라우저 알림 띄우기 (커스텀 UI로 대체 가능)
+        alert(`🔔 [새 소식] ${t}\n${b}`);
+    }
+});
+
+// 서비스 워커 등록 (PWA 핵심)
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./firebase-messaging-sw.js')
+    .then((registration) => {
+        console.log('SW 등록 성공:', registration);
+        initPush(); // 등록 후 알림 권한 요청
+    });
+}
 
 function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
 
@@ -250,7 +291,7 @@ async function getCache(t){const k=cacheKey(t);if(!k)return null;try{const s=awa
 async function setCache(t,r){const k=cacheKey(t);if(!k||k.length<3)return;try{await db.collection("ai_cache").doc(k).set({query:t,response:r,timestamp:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}}
 
 /* ═══════════════════════════════════════
-   🤖 AI 채팅 - 강화된 에러 핸들링
+   🤖 AI 채팅
    ═══════════════════════════════════════ */
 async function sendChat(){
     const input=document.getElementById('chatInput'),text=input.value.trim();
@@ -258,17 +299,15 @@ async function sendChat(){
     appendMsg(text,'user');input.value='';
     const lid=appendLoading();
     
-    // 1) 캐시 체크
     try{
         const cached=await getCache(text);
         if(cached){document.getElementById(lid)?.remove();appendMsg(cached+' <span class="cache-badge">⚡캐시</span>','bot');handleActions(cached);return;}
-    }catch(e){/* cache miss, continue */}
+    }catch(e){}
     
     const sys=`너는 '체리'라는 가족 AI 비서야. 친근한 반말, 이모지 사용. [기능] 1.일정:{"action":"add_event","date":"YYYY-MM-DD","title":"내용"}(오늘:${new Date().toISOString().split('T')[0]}) 2.장보기:{"action":"add_shopping","item":"물건"} 3.여러개:{"action":"add_shopping_multi","items":["a","b"]} 4.그외:텍스트. 짧고 간결하게 답해!`;
     
     let aiText="",ok=false,lastError="";
     
-    // 2) 모델 × 키 순차 시도
     for(const model of MODELS){
         if(ok)break;
         for(let attempt=0;attempt<KEYS.length;attempt++){
@@ -310,7 +349,6 @@ async function sendChat(){
     
     document.getElementById(lid)?.remove();
     
-    // 3) 성공 시
     if(ok&&aiText){
         setCache(text,aiText);
         handleActions(aiText);
@@ -318,7 +356,6 @@ async function sendChat(){
         return;
     }
     
-    // 4) 전부 실패 → Fallback AI
     console.warn(`[체리] API 모두 실패 (마지막: ${lastError}), 오프라인 모드`);
     const fb=fallbackAI(text);
     aiText=fb.text;
@@ -343,7 +380,7 @@ function loadFamily(){
             const img=d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:30px;"></i>`;
             con.innerHTML+=`<div class="mem-card"><button onclick="delFamily('${doc.id}')" style="position:absolute;top:10px;right:10px;border:none;background:none;color:#999;cursor:pointer;"><i class="fa-solid fa-times"></i></button><div class="mem-pic">${img}</div><div class="mem-role">${d.role}</div><div class="mem-desc">${d.desc||'Yummy!'}</div></div>`;
             const chk=selectedRole===d.role?'checked':'';
-            chips.innerHTML+=`<input type="radio" name="auth" id="c-${doc.id}" class="radio-hidden" value="${d.role}" onchange="selAuth(this)" ${chk}><label for="c-${doc.id}" class="writer-tag"><div style="width:24px;height:24px;border-radius:50%;overflow:hidden;background:#eee;border:1px solid #444;display:flex;align-items:center;justify-content:center;">${d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:12px;"></i>`}</div> ${d.role}</label>`;
+            chips.innerHTML+=`<input type="radio" name="auth" id="c-${doc.id}" class="radio-hidden" value="${d.role}" onchange="selAuth(this)" ${chk}><label for="c-${doc.id}" class="writer-tag"><div style="width:24px;height:24px;border-radius:50%;overflow:hidden;background:#eee;border:1px solid #444;display:flex;align-items:center;justify-content:center;">${d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:12px;"></i></div> ${d.role}</label>`;
         });
         con.innerHTML+=`<div class="mem-card add-card" onclick="openFamModal()"><i class="fa-solid fa-plus-circle" style="font-size:40px;"></i><span style="font-family:'Jua';font-size:18px;">가족 추가</span></div>`;
         updateHeaderProf();updateCommentAvatars();
@@ -357,19 +394,28 @@ function updateCommentAvatars(){const h=getMyAvatarHtml();document.querySelector
 function getMemberImg(role){const m=familyData.find(x=>x.role===role);return m&&m.imageUrl?`<img src="${m.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:14px;color:#bbb;"></i>`;}
 function getMyAvatarHtml(){return selectedRole?getMemberImg(selectedRole):`<i class="fa-solid fa-user" style="font-size:12px;color:#bbb;"></i>`;}
 
-/* ═══ 📰 피드 ═══ */
+/* ═══ 📰 피드 (알림 추가됨) ═══ */
 let feedImg=null;
 function handleImageSelect(e){if(e.target.files[0])compressImage(e.target.files[0],500,d=>{feedImg=d;document.getElementById('imagePreview').src=d;document.getElementById('imagePreviewBox').style.display='block';});}
 function clearImage(){feedImg=null;document.getElementById('imageInput').value='';document.getElementById('imagePreviewBox').style.display='none';}
+
 function addPost(){
     if(!selectedRole)return alert("가족을 선택해주세요!");
     const txt=document.getElementById('postContent').value,btn=document.getElementById('btnPost');
     if(!txt&&!feedImg)return alert("내용을 입력해주세요!");
     const mem=familyData.find(m=>m.role===selectedRole);btn.disabled=true;btn.innerText="저장 중...";
+    
+    // DB 저장
     db.collection("family_posts").add({author:selectedRole,authorImg:mem?mem.imageUrl:null,content:txt,imageUrl:feedImg,likedBy:[],likedByData:[],comments:[],timestamp:firebase.firestore.FieldValue.serverTimestamp()})
-    .then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerText="업로드!";window.scrollTo(0,0);})
+    .then(()=>{
+        // 🔔 [알림 전송]
+        sendNotificationToAll(selectedRole, txt || '사진을 올렸어요!');
+        
+        document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerText="업로드!";window.scrollTo(0,0);
+    })
     .catch(()=>{alert("실패!");btn.disabled=false;btn.innerText="업로드!";});
 }
+
 function likePost(id,likedByDataArr){
     if(!selectedRole)return alert("프로필을 선택해주세요!");
     const likedByData=likedByDataArr||[];
@@ -428,6 +474,49 @@ function toggleShop(id,s){db.collection("family_shopping").doc(id).update({check
 function delShop(id){if(confirm("삭제?"))db.collection("family_shopping").doc(id).delete();}
 window.changeTab=function(id,el){document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');window.scrollTo(0,0);}
 loadFamily();loadFeed();loadCal();loadShopping();
+
+/* ═══════════════════════════════════════
+   🔔 알림 전송 함수 (마지막 단계)
+   ═══════════════════════════════════════ */
+async function sendNotificationToAll(author, content) {
+    const SERVER_KEY = "AIzaSyD6gM0j6tYcYFL-yWy-ozv1PLWIEuGkN4I"; // 🍒 사용자 제공 키 적용됨
+
+    if (SERVER_KEY.includes("여기에")) {
+        console.warn("⚠️ 서버 키가 아직 설정되지 않았습니다.");
+        return;
+    }
+
+    const snapshot = await db.collection('fcm_tokens').get();
+    const tokens = [];
+    snapshot.forEach(doc => tokens.push(doc.id));
+
+    if (tokens.length === 0) return;
+
+    fetch('https://fcm.googleapis.com/fcm/send', {
+        method: 'POST',
+        headers: {
+            'Authorization': 'key=' + SERVER_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            registration_ids: tokens,
+            notification: {
+                title: `🍒 ${author}님의 새 글!`,
+                body: content.length > 20 ? content.substring(0, 20) + '...' : content,
+                icon: 'https://placehold.co/192x192/FFFDF5/D94844/png?text=%F0%9F%8D%92',
+                click_action: window.location.href
+            }
+        })
+    }).then(response => {
+        if (!response.ok) {
+            console.error("알림 전송 실패:", response.status);
+            // 만약 여기서 401 에러가 나면 키가 잘못된 것입니다.
+            if(response.status === 401) alert("⚠️ 알림 전송 실패! (서버 키 오류)\n혹시 키가 AAAA로 시작하지 않나요?");
+        } else {
+            console.log("알림 전송 완료!");
+        }
+    });
+}
 </script>
 </body>
 </html>
