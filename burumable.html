@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>부루마블 - Yummy Family</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--wood:#3e2723;--wood2:#5d4037;--cream:#fff8e1;--gold:#ffc107;--gold2:#ffca28;--red:#d32f2f;}
+body{font-family:'Noto Sans KR',sans-serif;background:#1a1a1a;color:#eee;min-height:100vh;overflow-x:hidden;-webkit-user-select:none;user-select:none;}
+.lobby{max-width:460px;margin:0 auto;padding:50px 24px;text-align:center;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:radial-gradient(ellipse at center,#2d2d2d,#1a1a1a);}
+.lobby h1{font-family:'Jua';font-size:52px;color:var(--gold);text-shadow:0 4px 0 #b8860b,0 0 40px rgba(255,193,7,0.3);}
+.lobby .sub{color:#888;font-size:15px;letter-spacing:4px;}
+.lc{background:linear-gradient(145deg,#2a2a2a,#222);border:1px solid #3a3a3a;border-radius:28px;padding:28px 24px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+.lc h3{font-family:'Jua';color:var(--gold2);font-size:22px;margin-bottom:18px;}
+.modes{display:flex;gap:12px;margin-bottom:16px;}
+.modes div{flex:1;padding:14px 8px;border:2px solid #444;border-radius:18px;cursor:pointer;transition:0.3s;}
+.modes div.on{border-color:var(--gold);background:rgba(255,193,7,0.06);}
+.modes .mi{font-size:26px;display:block;margin-bottom:4px;}.modes .mt{font-family:'Jua';font-size:16px;color:var(--cream);}.modes .md{font-size:11px;color:#888;}
+.li{width:100%;padding:16px;border:2px solid #444;border-radius:18px;background:#1a1a1a;color:white;font-size:18px;outline:none;text-align:center;font-family:'Jua';margin-bottom:12px;}.li:focus{border-color:var(--gold);}
+.lb{width:100%;padding:16px;border:none;border-radius:18px;font-family:'Jua';font-size:20px;cursor:pointer;transition:0.2s;margin-bottom:8px;}.lb:active{transform:scale(0.97);}
+.lb.r{background:linear-gradient(135deg,#d32f2f,#e53935);color:white;box-shadow:0 6px 20px rgba(211,47,47,0.4);}
+.lb.g{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#3e2723;}.lb.s{background:#333;color:#ccc;}
+.pi{display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.03);border-radius:14px;margin-bottom:8px;}
+.pd{width:24px;height:24px;border-radius:50%;border:3px solid rgba(255,255,255,0.2);flex-shrink:0;}
+.pn{flex:1;text-align:left;font-weight:700;font-size:17px;color:var(--cream);}.px{color:#666;cursor:pointer;font-size:18px;padding:4px 8px;}
+.wait-msg{background:rgba(255,193,7,0.1);border:1px solid rgba(255,193,7,0.3);border-radius:14px;padding:14px;margin-top:12px;font-size:14px;color:var(--gold2);}
+.game{display:none;min-height:100vh;background:radial-gradient(ellipse at top,#2d2d2d,#1a1a1a);padding-bottom:40px;}
+.gt{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;}
+.gt h2{font-family:'Jua';color:var(--gold);font-size:22px;text-shadow:0 2px 0 #b8860b;}
+.gt .tb{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);padding:8px 18px;border-radius:30px;font-size:15px;font-weight:700;}
+.gx{position:fixed;top:12px;left:12px;background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);color:white;padding:10px 18px;border-radius:30px;font-size:14px;cursor:pointer;z-index:100;font-family:'Jua';backdrop-filter:blur(10px);}
+.bf{margin:0 auto;padding:6px 8px;max-width:680px;}
+.board{position:relative;width:100%;aspect-ratio:1;background:linear-gradient(145deg,#1b5e20,#2e7d32);border-radius:14px;border:5px solid var(--wood);box-shadow:0 0 0 2px var(--wood2),0 10px 40px rgba(0,0,0,0.5),inset 0 0 80px rgba(0,0,0,0.3);overflow:visible;}
+.board .bc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.bc .bt{font-family:'Jua';font-size:clamp(14px,3.5vw,28px);color:rgba(255,255,255,0.1);letter-spacing:clamp(2px,1vw,8px);}
+.cell{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;overflow:visible;transition:filter 0.15s;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.06);}
+.cell:hover{filter:brightness(1.3);z-index:5;}.cell.corner{background:rgba(0,0,0,0.15);border-radius:3px;}
+.cs{position:absolute;}
+.side-b .cs{top:0;left:0;right:0;height:clamp(4px,1.2vw,7px);}
+.side-l .cs{top:0;bottom:0;right:0;width:clamp(4px,1.2vw,7px);}
+.side-t .cs{bottom:0;left:0;right:0;height:clamp(4px,1.2vw,7px);}
+.side-r .cs{top:0;bottom:0;left:0;width:clamp(4px,1.2vw,7px);}
+.c-flag{font-size:clamp(10px,2.6vw,18px);line-height:1;}
+.cn{font-size:clamp(6px,1.4vw,10px);font-weight:700;color:rgba(255,255,255,0.9);text-align:center;line-height:1.1;text-shadow:0 1px 2px rgba(0,0,0,0.6);padding:0 1px;}
+.cp{font-size:clamp(5px,1.1vw,8px);color:var(--gold2);font-weight:700;}
+.co{position:absolute;bottom:clamp(1px,0.4vw,3px);left:50%;transform:translateX(-50%);width:clamp(8px,2vw,14px);height:clamp(8px,2vw,14px);border-radius:50%;border:2px solid white;box-shadow:0 0 6px rgba(0,0,0,0.8);z-index:8;}
+.cb{position:absolute;top:clamp(0px,0.2vw,2px);left:50%;transform:translateX(-50%);display:flex;gap:1px;z-index:8;pointer-events:none;}
+.cb-v{width:clamp(5px,1.2vw,8px);height:clamp(6px,1.5vw,10px);border-radius:1px;border:1px solid rgba(255,255,255,0.7);}
+.cb-hotel{width:clamp(12px,3vw,18px);height:clamp(7px,1.8vw,12px);border-radius:2px;border:1.5px solid rgba(255,255,255,0.8);}
+.toks{position:absolute;display:flex;flex-wrap:wrap;gap:1px;justify-content:center;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:10;}
+.tk{width:clamp(11px,2.5vw,18px);height:clamp(11px,2.5vw,18px);border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.6);transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1);}
+.pr{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding:8px 10px;max-width:680px;margin:0 auto;}
+.pc{flex:1;min-width:95px;max-width:170px;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.06);border-radius:16px;padding:10px 6px;text-align:center;transition:0.3s;}
+.pc.now{border-color:var(--gold);box-shadow:0 0 18px rgba(255,193,7,0.15);background:rgba(255,193,7,0.03);}
+.pc.dead{opacity:0.2;filter:grayscale(1);}
+.pcn{font-family:'Jua';font-size:clamp(13px,3vw,17px);}.pcm{font-size:clamp(13px,3vw,16px);font-weight:900;color:var(--gold2);}.pci{font-size:11px;color:#888;margin-top:2px;}
+.db{text-align:center;padding:18px 16px;max-width:680px;margin:0 auto;}
+.dp{display:flex;justify-content:center;gap:24px;margin-bottom:18px;}
+.die{width:clamp(68px,17vw,95px);height:clamp(68px,17vw,95px);background:linear-gradient(145deg,#fff,#e8e8e8);border-radius:clamp(14px,3vw,22px);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 25px rgba(0,0,0,0.4),inset 0 2px 0 rgba(255,255,255,0.8);transition:0.3s;}
+.die svg{width:70%;height:70%;}.die svg circle{fill:#222;}
+.die.shake{animation:shake .06s infinite alternate;}
+@keyframes shake{0%{transform:rotate(-18deg) scale(1.08);}100%{transform:rotate(18deg) scale(1.08);}}
+.die.bounce{animation:bounce .5s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes bounce{0%{transform:scale(1.3) rotate(12deg);}40%{transform:scale(0.92);}100%{transform:scale(1) rotate(0);}}
+.dr{font-family:'Jua';font-size:clamp(20px,5vw,28px);color:var(--gold2);min-height:34px;margin-bottom:14px;}
+.rb{padding:clamp(16px,4vw,22px) clamp(40px,12vw,75px);border:none;border-radius:50px;background:linear-gradient(135deg,#d32f2f,#f44336);color:white;font-family:'Jua';font-size:clamp(22px,5.5vw,30px);cursor:pointer;box-shadow:0 8px 28px rgba(211,47,47,0.5),0 2px 0 #b71c1c;letter-spacing:2px;position:relative;overflow:hidden;}
+.rb::before{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);animation:shine 3s infinite;}
+@keyframes shine{0%{left:-100%;}100%{left:200%;}}
+.rb:active{transform:translateY(3px);box-shadow:0 2px 10px rgba(211,47,47,0.3);}
+.rb:disabled{background:#444;color:#666;box-shadow:none;cursor:default;}.rb:disabled::before{display:none;}
+.wait-turn{font-family:'Jua';font-size:clamp(16px,4vw,22px);color:#888;padding:20px;}
+.mob{position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(8px);}.mob.on{display:flex;}
+.moc{background:linear-gradient(145deg,#2a2a2a,#222);border:1px solid #3a3a3a;border-radius:28px;padding:32px 26px;max-width:420px;width:92%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.6);animation:mp .3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes mp{from{transform:scale(0.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+.moc h3{font-family:'Jua';color:var(--gold2);font-size:clamp(22px,5.5vw,30px);margin-bottom:14px;}
+.moc p{font-size:clamp(14px,3.5vw,18px);color:#ccc;line-height:1.7;}
+.moc .big{font-family:'Jua';font-size:clamp(28px,7vw,38px);color:var(--gold);margin:12px 0;}
+.mbs{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;}
+.mbs button{flex:1;min-width:80px;padding:14px;border:none;border-radius:14px;font-family:'Jua';font-size:clamp(16px,4vw,21px);cursor:pointer;transition:0.2s;}
+.mbs button:active{transform:scale(0.97);}
+.mbs .my{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--wood);}.mbs .mn{background:rgba(255,255,255,0.06);color:#aaa;border:1px solid #444;}
+.bld-info{display:flex;justify-content:center;gap:8px;margin:12px 0;font-size:14px;color:#aaa;}.bld-info span{padding:4px 10px;border-radius:8px;border:1px solid #444;}
+.gl{max-width:680px;margin:10px auto;max-height:100px;overflow-y:auto;padding:10px 14px;background:rgba(0,0,0,0.3);border-radius:14px;font-size:clamp(12px,2.8vw,14px);color:#888;margin-left:10px;margin-right:10px;}
+.gl div{padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+</style>
+</head>
+<body>
+<div class="lobby" id="lobby">
+    <h1>🎲 부루마블</h1><div class="sub">YUMMY FAMILY</div>
+    <div class="lc"><h3>게임 모드</h3><div class="modes"><div class="on" id="ml" onclick="setMode('local')"><span class="mi">📱</span><span class="mt">한 기기</span><span class="md">돌아가며</span></div><div id="mo" onclick="setMode('online')"><span class="mi">🌐</span><span class="mt">온라인</span><span class="md">각자 기기</span></div></div></div>
+    <div class="lc" id="sL"><h3>👨‍👩‍👧‍👦 플레이어 (2~6명)</h3><div style="display:flex;gap:8px;margin-bottom:12px;"><input class="li" id="ni" placeholder="이름" style="margin:0;flex:1;" onkeydown="if(event.key==='Enter')addP()"><button class="lb g" style="width:auto;padding:12px 24px;margin:0;" onclick="addP()">추가</button></div><div id="pls"></div><button class="lb r" onclick="startLocal()" style="margin-top:16px;">🎲 게임 시작!</button></div>
+    <div class="lc" id="sO" style="display:none;"><h3>🌐 온라인</h3><input class="li" id="mni" placeholder="내 이름"><div style="display:flex;gap:8px;"><button class="lb g" style="flex:1;" onclick="createRoom()">방 만들기</button><button class="lb s" style="flex:1;" onclick="$('jd').style.display='block'">참가</button></div><div id="jd" style="display:none;margin-top:12px;"><input class="li" id="ci" placeholder="방 코드"><button class="lb s" onclick="joinRoom()">입장</button></div><div id="rd" style="display:none;margin-top:16px;"><div style="background:rgba(255,193,7,0.05);border:2px solid rgba(255,193,7,0.25);border-radius:20px;padding:20px;margin-bottom:12px;"><div style="font-size:12px;color:#888;">방 코드</div><div id="rc" style="font-size:44px;font-family:'Jua';color:var(--gold);letter-spacing:8px;"></div></div><div id="opl"></div><button class="lb r" id="osb" style="display:none;margin-top:12px;" onclick="startOnline()">🎲 게임 시작!</button><div id="waitMsg" class="wait-msg" style="display:none;">호스트가 시작하기를 기다리는 중...</div></div></div>
+</div>
+<div class="game" id="game">
+    <button class="gx" onclick="if(confirm('나갈까요?'))location.reload()"><i class="fa-solid fa-arrow-left"></i> 나가기</button>
+    <div class="gt"><h2>🎲 부루마블</h2><div class="tb" id="tB">준비 중...</div></div>
+    <div class="bf"><div class="board" id="board"><div class="bc"><div class="bt">부루마블</div></div></div></div>
+    <div class="pr" id="pR"></div>
+    <div class="db"><div class="dp"><div class="die" id="d1"></div><div class="die" id="d2"></div></div><div class="dr" id="dR"></div><button class="rb" id="rB" onclick="doRoll()">🎲 주사위 굴리기</button><div class="wait-turn" id="wT" style="display:none;"></div></div>
+    <div class="gl" id="gl"></div>
+</div>
+<div class="mob" id="moB"><div class="moc" id="moC"></div></div>
+<script>
+const $=id=>document.getElementById(id);
+firebase.initializeApp({apiKey:"AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",authDomain:"our-family-home.firebaseapp.com",projectId:"our-family-home",storageBucket:"our-family-home.firebasestorage.app",messagingSenderId:"446464856858",appId:"1:446464856858:web:344f2c83aeda0ea9ae52a3"});
+const db=firebase.firestore(),C=['#e53935','#1e88e5','#43a047','#fdd835','#e040fb','#ff7043'],SM=1500000;
+const BD=[
+{n:"출발",t:"go",fl:"🚀"},{n:"타이베이",t:"p",pr:60000,rn:6000,hc:50000,cl:"#8D6E63",g:"A",fl:"🇹🇼"},
+{n:"황금열쇠",t:"gk",fl:"🔑"},{n:"홍콩",t:"p",pr:80000,rn:8000,hc:50000,cl:"#8D6E63",g:"A",fl:"🇭🇰"},
+{n:"소득세",t:"tx",amt:150000,fl:"💸"},{n:"부산항",t:"p",pr:200000,rn:25000,cl:"#78909C",g:"T",fl:"🚢"},
+{n:"마닐라",t:"p",pr:120000,rn:12000,hc:100000,cl:"#4FC3F7",g:"B",fl:"🇵🇭"},
+{n:"사회기금",t:"cc",fl:"💰"},{n:"싱가포르",t:"p",pr:140000,rn:14000,hc:100000,cl:"#4FC3F7",g:"B",fl:"🇸🇬"},
+{n:"하와이",t:"p",pr:160000,rn:16000,hc:100000,cl:"#4FC3F7",g:"B",fl:"🌺"},
+{n:"무인도",t:"jail",fl:"🏝️"},{n:"카이로",t:"p",pr:200000,rn:20000,hc:150000,cl:"#F06292",g:"C",fl:"🇪🇬"},
+{n:"전기회사",t:"p",pr:150000,rn:20000,cl:"#FFF176",g:"U",fl:"💡"},
+{n:"이스탄불",t:"p",pr:220000,rn:22000,hc:150000,cl:"#F06292",g:"C",fl:"🇹🇷"},
+{n:"아테네",t:"p",pr:240000,rn:24000,hc:150000,cl:"#F06292",g:"C",fl:"🇬🇷"},
+{n:"인천공항",t:"p",pr:200000,rn:25000,cl:"#78909C",g:"T",fl:"✈️"},
+{n:"코펜하겐",t:"p",pr:280000,rn:28000,hc:200000,cl:"#FFB74D",g:"D",fl:"🇩🇰"},
+{n:"황금열쇠",t:"gk",fl:"🔑"},{n:"스톡홀름",t:"p",pr:300000,rn:30000,hc:200000,cl:"#FFB74D",g:"D",fl:"🇸🇪"},
+{n:"베른",t:"p",pr:320000,rn:32000,hc:200000,cl:"#FFB74D",g:"D",fl:"🇨🇭"},
+{n:"우주여행",t:"free",fl:"🚀"},{n:"런던",t:"p",pr:360000,rn:36000,hc:250000,cl:"#EF5350",g:"E",fl:"🇬🇧"},
+{n:"사회기금",t:"cc",fl:"💰"},{n:"로마",t:"p",pr:400000,rn:40000,hc:250000,cl:"#EF5350",g:"E",fl:"🇮🇹"},
+{n:"파리",t:"p",pr:420000,rn:42000,hc:250000,cl:"#EF5350",g:"E",fl:"🇫🇷"},
+{n:"김포공항",t:"p",pr:200000,rn:25000,cl:"#78909C",g:"T",fl:"✈️"},
+{n:"도쿄",t:"p",pr:440000,rn:44000,hc:300000,cl:"#66BB6A",g:"F",fl:"🇯🇵"},
+{n:"황금열쇠",t:"gk",fl:"🔑"},{n:"뉴욕",t:"p",pr:460000,rn:46000,hc:300000,cl:"#66BB6A",g:"F",fl:"🇺🇸"},
+{n:"세금",t:"tx",amt:200000,fl:"💸"},{n:"서울",t:"p",pr:500000,rn:50000,hc:350000,cl:"#42A5F5",g:"G",fl:"🇰🇷"},
+{n:"제주도",t:"p",pr:600000,rn:60000,hc:400000,cl:"#42A5F5",g:"G",fl:"🍊"}];
+const GK=[{txt:"🎁 생일! 모두에게 5만원씩!",a:"bday",v:50000},{txt:"💰 복권 30만원!",a:"get",v:300000},{txt:"🏥 병원비 15만원",a:"pay",v:150000},{txt:"🚀 출발로! +20만원!",a:"goto",pos:0,v:200000},{txt:"🏝️ 무인도!",a:"jail"},{txt:"⬆️ 앞으로 3칸!",a:"fwd",v:3},{txt:"⬇️ 뒤로 3칸!",a:"back",v:3},{txt:"🏠 무료 업그레이드!",a:"upgrade"},{txt:"🔨 건물 철거!",a:"demolish"},{txt:"💸 재산 10% 세금!",a:"pct",v:10},{txt:"🎰 잭팟 50만원!",a:"get",v:500000},{txt:"🚗 벌금 8만원",a:"pay",v:80000},{txt:"🎊 축하금 10만원!",a:"get",v:100000},{txt:"🏦 이자 20만원!",a:"get",v:200000},{txt:"💳 카드값 12만원",a:"pay",v:120000},{txt:"✈️ 가까운 공항으로!",a:"airport"},{txt:"🎪 우주여행으로!",a:"goto",pos:20},{txt:"🛡️ 임대료 면제권!",a:"shield"}];
+const CC=[{txt:"💰 환급 15만원!",a:"get",v:150000},{txt:"🏗️ 보수비 10만원",a:"pay",v:100000},{txt:"🎓 장학금 20만원!",a:"get",v:200000},{txt:"🏥 보험 환급 8만원",a:"get",v:80000},{txt:"📋 보험료 6만원",a:"pay",v:60000},{txt:"🎉 상금 25만원!",a:"get",v:250000},{txt:"🚧 수리비 7만원",a:"pay",v:70000}];
+const BN=['맨땅','🏡별장','🏢빌딩','🏨호텔'],BR=[1,2,4,8];
+const DOTS={1:[[50,50]],2:[[25,25],[75,75]],3:[[25,25],[50,50],[75,75]],4:[[25,25],[75,25],[25,75],[75,75]],5:[[25,25],[75,25],[50,50],[25,75],[75,75]],6:[[25,20],[75,20],[25,50],[75,50],[25,80],[75,80]]};
+function dSVG(n){n=Math.max(1,Math.min(6,n||1));return`<svg viewBox="0 0 100 100">${DOTS[n].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9"/>`).join('')}</svg>`;}
+let mode='local',GS=null,myId=null,roomId=null,unsub=null,nms=[],busy=false,isHost=false;
+
+/* ═══ LOBBY ═══ */
+function setMode(m){mode=m;$('ml').className=m==='local'?'on':'';$('mo').className=m==='online'?'on':'';$('sL').style.display=m==='local'?'block':'none';$('sO').style.display=m==='online'?'block':'none';}
+function addP(){const inp=$('ni'),n=inp.value.trim();if(!n||nms.length>=6)return;nms.push(n);inp.value='';inp.focus();rL();}
+function rL(){$('pls').innerHTML='';nms.forEach((n,i)=>$('pls').innerHTML+=`<div class="pi"><div class="pd" style="background:${C[i]}"></div><span class="pn">${n}</span><span class="px" onclick="nms.splice(${i},1);rL();">✕</span></div>`);}
+function mkGS(ns){const pl={};ns.forEach((n,i)=>pl['p'+i]={nm:n,cl:C[i],m:SM,pos:0,jl:false,jt:0,pr:[],ok:true,shield:false});return{pl,turn:'p0',ord:ns.map((_,i)=>'p'+i),own:{},ph:'roll',lg:[],win:null,ts:Date.now()};}
+function startLocal(){if(nms.length<2)return alert("2명 이상!");GS=mkGS(nms);myId=null;goGame();}
+
+/* ═══ ONLINE ═══ */
+async function createRoom(){const n=$('mni').value.trim();if(!n)return alert("이름!");roomId=Math.random().toString(36).substring(2,6).toUpperCase();myId='p0';isHost=true;const gs=mkGS([n]);gs.ph='wait';gs.host=myId;try{await db.collection("game_rooms").doc(roomId).set(gs);$('rc').textContent=roomId;$('rd').style.display='block';$('osb').style.display='block';listenRoom();}catch(e){alert("실패:"+e.message);}}
+async function joinRoom(){const n=$('mni').value.trim(),code=$('ci').value.trim().toUpperCase();if(!n||!code)return alert("입력!");roomId=code;try{const doc=await db.collection("game_rooms").doc(roomId).get();if(!doc.exists)return alert("방 없음!");const d=doc.data();if(d.ph!=='wait')return alert("이미 시작!");const pc=Object.keys(d.pl).length;if(pc>=6)return alert("꽉 참!");myId='p'+pc;isHost=false;const u={};u[`pl.${myId}`]={nm:n,cl:C[pc],m:SM,pos:0,jl:false,jt:0,pr:[],ok:true,shield:false};u.ord=[...d.ord,myId];await db.collection("game_rooms").doc(roomId).update(u);$('rc').textContent=roomId;$('rd').style.display='block';$('waitMsg').style.display='block';listenRoom();}catch(e){alert("실패:"+e.message);}}
+function listenRoom(){if(unsub)unsub();unsub=db.collection("game_rooms").doc(roomId).onSnapshot(snap=>{if(!snap.exists)return;const d=snap.data();if(d.ph==='wait'){$('opl').innerHTML='';Object.entries(d.pl).forEach(([id,p])=>{$('opl').innerHTML+=`<div class="pi"><div class="pd" style="background:${p.cl}"></div><span class="pn">${p.nm}${id===myId?' (나)':''}</span></div>`;});if(isHost)$('osb').style.display='block';}else{GS=d;if($('lobby').style.display!=='none')goGame();else render();}},err=>console.error(err));}
+async function startOnline(){try{const doc=await db.collection("game_rooms").doc(roomId).get();if(Object.keys(doc.data().pl).length<2)return alert("2명 이상!");await db.collection("game_rooms").doc(roomId).update({ph:'roll',ts:Date.now()});}catch(e){alert(e.message);}}
+function goGame(){$('lobby').style.display='none';$('game').style.display='block';$('d1').innerHTML=dSVG(1);$('d2').innerHTML=dSVG(1);buildBoard();render();}
+
+/* ═══ BOARD BUILD ═══ */
+function buildBoard(){
+    const bd=$('board');bd.querySelectorAll('.cell').forEach(e=>e.remove());
+    const bw=bd.offsetWidth;if(!bw)return;
+    const S=8,cn=bw*0.135,cs=(bw-2*cn)/(S-1);
+    BD.forEach((c,i)=>{
+        const d=document.createElement('div');d.id='c'+i;d.onclick=()=>cellInfo(i);
+        let x,y,w,h,side;
+        if(i===0){x=bw-cn;y=bw-cn;w=cn;h=cn;side='corner';}
+        else if(i<S){x=bw-cn-i*cs;y=bw-cn;w=cs;h=cn;side='b';}
+        else if(i===S){x=0;y=bw-cn;w=cn;h=cn;side='corner';}
+        else if(i<S*2){const j=i-S;x=0;y=bw-cn-j*cs;w=cn;h=cs;side='l';}
+        else if(i===S*2){x=0;y=0;w=cn;h=cn;side='corner';}
+        else if(i<S*3){const j=i-S*2;x=cn+(j-1)*cs;y=0;w=cs;h=cn;side='t';}
+        else if(i===S*3){x=bw-cn;y=0;w=cn;h=cn;side='corner';}
+        else{const j=i-S*3;x=bw-cn;y=cn+(j-1)*cs;w=cn;h=cs;side='r';}
+        d.className=`cell side-${side}${side==='corner'?' corner':''}`;
+        d.style.cssText=`left:${x}px;top:${y}px;width:${w}px;height:${h}px;`;
+        let html='';
+        if(c.cl)html+=`<div class="cs" style="background:${c.cl};"></div>`;
+        if(c.fl)html+=`<div class="c-flag">${c.fl}</div>`;
+        html+=`<div class="cn">${c.n}</div>`;
+        if(c.pr)html+=`<div class="cp">${c.pr>=100000?(c.pr/10000)+'만':c.pr.toLocaleString()}</div>`;
+        d.innerHTML=html;bd.appendChild(d);
+    });
+}
+
+/* ═══ RENDER ═══ */
+function render(){
+    if(!GS)return;
+    $('pR').innerHTML='';
+    GS.ord.forEach(id=>{const p=GS.pl[id];if(!p)return;
+        let bc=0;p.pr.forEach(pos=>{const o=GS.own[pos];if(o&&o.h)bc+=o.h;});
+        const me=id===myId;
+        $('pR').innerHTML+=`<div class="pc ${id===GS.turn?'now':''} ${!p.ok?'dead':''}" ${me?'style="border-color:'+p.cl+'"':''}><div class="pcn" style="color:${p.cl}">${p.ok?'●':'💀'} ${p.nm}${p.shield?' 🛡️':''}${me?' (나)':''}</div><div class="pcm">💰 ${fmt(p.m)}</div><div class="pci">🏠${p.pr.length} 🏗️${bc}</div></div>`;
+    });
+    document.querySelectorAll('.toks').forEach(e=>e.remove());
+    const pm={};GS.ord.forEach(id=>{const p=GS.pl[id];if(!p||!p.ok)return;if(!pm[p.pos])pm[p.pos]=[];pm[p.pos].push(p.cl);});
+    Object.entries(pm).forEach(([pos,cols])=>{const cell=$('c'+pos);if(!cell)return;const tw=document.createElement('div');tw.className='toks';cols.forEach(c=>tw.innerHTML+=`<div class="tk" style="background:${c}"></div>`);cell.appendChild(tw);});
+    // ★ Owner dots + 건물 (플레이어 색상 반영)
+    document.querySelectorAll('.co,.cb').forEach(e=>e.remove());
+    if(GS.own)Object.entries(GS.own).forEach(([pos,info])=>{
+        const cell=$('c'+pos);if(!cell||!info.w)return;
+        const p=GS.pl[info.w];if(!p)return;
+        cell.innerHTML+=`<div class="co" style="background:${p.cl}"></div>`;
+        if(info.h>0){
+            let bh='<div class="cb">';
+            if(info.h===3)bh+=`<div class="cb-hotel" style="background:${p.cl};"></div>`;
+            else for(let i=0;i<info.h;i++)bh+=`<div class="cb-v" style="background:${p.cl};"></div>`;
+            bh+='</div>';cell.innerHTML+=bh;
+        }
+    });
+    const cp=GS.pl[GS.turn];
+    $('tB').innerHTML=cp?`<span style="color:${cp.cl}">● ${cp.nm}</span>의 차례`:'';
+    const isMy=mode==='local'||(GS.turn===myId);
+    if(GS.ph==='roll'){if(isMy){$('rB').style.display='inline-block';$('rB').disabled=false;$('wT').style.display='none';}else{$('rB').style.display='none';$('wT').style.display='block';$('wT').innerHTML=cp?`<span style="color:${cp.cl}">${cp.nm}</span>의 차례...`:'';}}
+    else{$('rB').style.display='none';$('rB').disabled=true;$('wT').style.display='none';}
+    if(GS.lg)$('gl').innerHTML=GS.lg.map(l=>`<div>${l}</div>`).join('');
+    if(GS.win){const w=GS.pl[GS.win];modal(`🎉 ${w.nm} 승리!`,`축하합니다!<br>💰 ${fmt(w.m)}`,[{t:'🏠 돌아가기',c:'my',f:()=>location.reload()}]);}
+}
+
+/* ═══ DICE ═══ */
+async function doRoll(){
+    if(busy)return;const pid=GS.turn,p=GS.pl[pid];if(!p||!p.ok)return;
+    if(mode==='online'&&pid!==myId)return;
+    busy=true;GS.ph='action';await sv();
+    $('rB').disabled=true;$('dR').textContent='';
+    const d1=$('d1'),d2=$('d2');
+    d1.classList.add('shake');d2.classList.add('shake');
+    let fi=setInterval(()=>{d1.innerHTML=dSVG(Math.ceil(Math.random()*6));d2.innerHTML=dSVG(Math.ceil(Math.random()*6));},60);
+    await slp(1300);clearInterval(fi);
+    const v1=Math.ceil(Math.random()*6),v2=Math.ceil(Math.random()*6);
+    d1.innerHTML=dSVG(v1);d2.innerHTML=dSVG(v2);
+    d1.classList.remove('shake');d2.classList.remove('shake');d1.classList.add('bounce');d2.classList.add('bounce');
+    setTimeout(()=>{d1.classList.remove('bounce');d2.classList.remove('bounce');},500);
+    const tot=v1+v2,dbl=v1===v2;
+    $('dR').innerHTML=`${v1} + ${v2} = <b>${tot}</b>${dbl?' <span style="color:#ff4757">더블!</span>':''}`;
+    lg(`🎲 ${p.nm} → ${v1}+${v2}=${tot}${dbl?' (더블!)':''}`);await slp(500);
+    if(p.jl){if(dbl){p.jl=false;p.jt=0;lg(`🏝️ ${p.nm} 더블로 탈출!`);}
+    else{p.jt=(p.jt||0)+1;if(p.jt>=3){p.jl=false;p.jt=0;p.m-=100000;lg(`${p.nm} 벌금 10만원 탈출`);}
+    else{lg(`${p.nm} 무인도 (${p.jt}/3)`);nxt();busy=false;await sv();return;}}}
+    const old=p.pos,nw=(old+tot)%BD.length;
+    if(nw<old){p.m+=200000;lg(`💵 ${p.nm} 출발 통과! +20만원`);}
+    p.pos=nw;await sv();await slp(400);
+    await land(pid);
+    if(dbl&&p.ok&&!p.jl){GS.ph='roll';lg(`🎲 ${p.nm} 더블! 한 번 더!`);busy=false;await sv();return;}
+    busy=false;await sv();
+}
+
+/* ═══ LANDING ═══ */
+async function land(pid){
+    const p=GS.pl[pid],c=BD[p.pos];
+    if(c.t==='go'){lg(`${p.nm} 출발!`);nxt();}
+    else if(c.t==='p'){
+        const ow=GS.own[p.pos];
+        if(ow&&ow.w&&ow.w!==pid&&GS.pl[ow.w]?.ok){
+            if(p.shield){p.shield=false;lg(`🛡️ ${p.nm} 면제권!`);nxt();return;}
+            const owner=GS.pl[ow.w],bLv=ow.h||0,rent=Math.round((c.rn||0)*BR[bLv]);
+            p.m-=rent;owner.m+=rent;
+            lg(`💸 ${p.nm} → ${owner.nm} ${fmt(rent)}${bLv>0?' ('+BN[bLv]+')':''}`);
+            await mA('💸 임대료',`${c.fl} <b>${c.n}</b>${bLv>0?' '+BN[bLv]:''}<br><span style="color:${owner.cl}">${owner.nm}</span>의 땅<div class="big">${fmt(rent)}</div>`,'확인');
+            bk(pid);nxt();
+        }else if(!ow||!ow.w){
+            if(c.pr&&p.m>=c.pr){
+                const isMy=mode==='local'||(pid===myId);if(!isMy){nxt();return;}
+                const buy=await mC(`🏠 ${c.fl} ${c.n}`,`가격: <div class="big">${fmt(c.pr)}</div>임대료: ${fmt(c.rn)}<br>잔고: ${fmt(p.m)}`,'💰 구매','넘기기');
+                if(buy){p.m-=c.pr;p.pr.push(p.pos);GS.own[p.pos]={w:pid,h:0};lg(`🏠 ${p.nm} → ${c.n} 구매!`);await sv();
+                    if(c.hc&&p.m>=c.hc)await buildOption(pid,p.pos);
+                }else lg(`${p.nm} 패스`);
+            }else if(c.pr)lg(`${p.nm} 자금 부족`);
+            nxt();
+        }else{await buildOption(pid,p.pos);nxt();}
+    }
+    else if(c.t==='tx'){p.m-=c.amt;lg(`💸 세금 ${fmt(c.amt)}`);await mA('💸 세금',`<div class="big">-${fmt(c.amt)}</div>`,'확인');bk(pid);nxt();}
+    else if(c.t==='jail'){p.jl=true;p.jt=0;lg(`🏝️ ${p.nm} 무인도!`);await mA('🏝️ 무인도','갇혔습니다! 더블로 탈출!','확인');nxt();}
+    else if(c.t==='gk'){await goldKey(pid);nxt();}
+    else if(c.t==='cc'){await community(pid);nxt();}
+    else if(c.t==='free'){lg(`🚀 ${p.nm} 우주여행!`);nxt();}
+    else nxt();
+}
+
+/* ═══ 건물 (연속건설+플레이어색) ═══ */
+async function buildOption(pid,pos){
+    const p=GS.pl[pid],c=BD[pos],ow=GS.own[pos];
+    if(!ow||!c.hc)return;const isMy=mode==='local'||(pid===myId);if(!isMy)return;
+    let go=true;
+    while(go){
+        const lv=ow.h||0;if(lv>=3)break;
+        const nLv=lv+1,cost=c.hc*nLv;if(p.m<cost)break;
+        const nR=Math.round(c.rn*BR[nLv]);
+        const build=await mC(`🏗️ ${c.fl} ${c.n}`,`${BN[lv]} → <b>${BN[nLv]}</b><br><br>건설비: <div class="big">${fmt(cost)}</div>임대료: ${fmt(Math.round(c.rn*BR[lv]))} → <b style="color:#4CAF50">${fmt(nR)}</b><br>잔고: ${fmt(p.m)}`,'🏗️ 건설!','넘기기');
+        if(build){p.m-=cost;ow.h=nLv;lg(`🏗️ ${p.nm} ${c.n}에 ${BN[nLv]}!`);await sv();}
+        else go=false;
+    }
+}
+
+/* ═══ 황금열쇠 ═══ */
+async function goldKey(pid){
+    const p=GS.pl[pid],card=GK[Math.floor(Math.random()*GK.length)];lg(`🔑 ${card.txt}`);
+    if(card.a==='get')p.m+=card.v;else if(card.a==='pay')p.m-=card.v;
+    else if(card.a==='goto'){p.pos=card.pos;if(card.v)p.m+=card.v;}
+    else if(card.a==='jail'){p.pos=10;p.jl=true;p.jt=0;}
+    else if(card.a==='fwd')p.pos=(p.pos+card.v)%BD.length;
+    else if(card.a==='back')p.pos=(p.pos-card.v+BD.length)%BD.length;
+    else if(card.a==='pct')p.m-=Math.round(p.m*card.v/100);
+    else if(card.a==='bday'){let g=0;GS.ord.forEach(id=>{if(id!==pid&&GS.pl[id]?.ok){GS.pl[id].m-=card.v;g+=card.v;}});p.m+=g;}
+    else if(card.a==='upgrade'){const mp=p.pr.find(pos=>{const o=GS.own[pos];return o&&(o.h||0)<3&&BD[pos].hc;});if(mp!==undefined){const o=GS.own[mp];o.h=(o.h||0)+1;lg(`🎁 ${BD[mp].n}에 ${BN[o.h]}!`);}else lg(`업그레이드할 땅 없음`);}
+    else if(card.a==='demolish'){const mb=p.pr.find(pos=>{const o=GS.own[pos];return o&&(o.h||0)>0;});if(mb!==undefined){const o=GS.own[mb];o.h=Math.max(0,o.h-1);lg(`🔨 ${BD[mb].n} 철거!`);}else lg(`건물 없음`);}
+    else if(card.a==='airport'){const ap=[5,15,25];let nr=ap[0],md=999;ap.forEach(a=>{const d=(a-p.pos+BD.length)%BD.length;if(d>0&&d<md){md=d;nr=a;}});p.pos=nr;}
+    else if(card.a==='shield')p.shield=true;
+    await mA('🔑 황금열쇠',`<div style="font-size:clamp(17px,4.5vw,24px);margin:16px 0;line-height:1.6;">${card.txt}</div>`,'확인');bk(pid);
+}
+async function community(pid){
+    const p=GS.pl[pid],card=CC[Math.floor(Math.random()*CC.length)];lg(`💰 ${card.txt}`);
+    if(card.a==='get')p.m+=card.v;else if(card.a==='pay')p.m-=card.v;
+    await mA('💰 사회기금',`<div style="font-size:clamp(17px,4.5vw,24px);margin:16px 0;line-height:1.6;">${card.txt}</div>`,'확인');bk(pid);
+}
+function cellInfo(i){
+    const c=BD[i];let h=`<span style="font-size:32px;">${c.fl}</span><br><b style="font-size:22px;">${c.n}</b>`;
+    if(c.pr){h+=`<br><br>💰 ${fmt(c.pr)} | 📋 ${fmt(c.rn)}`;if(c.hc)h+=`<br><div class="bld-info"><span>🏡x${BR[1]}</span><span>🏢x${BR[2]}</span><span>🏨x${BR[3]}</span></div>`;}
+    const ow=GS?.own?.[i];if(ow?.w){const o=GS.pl[ow.w];h+=`<br>소유: <span style="color:${o.cl};font-weight:900;">● ${o.nm}</span>${(ow.h||0)>0?' | '+BN[ow.h]:''}`;h+=`<br>임대료: <b style="color:var(--gold)">${fmt(Math.round(c.rn*BR[ow.h||0]))}</b>`;}
+    modal(c.n,h,[{t:'닫기',c:'mn',f:closeM}]);
+}
+
+/* ═══ UTIL ═══ */
+function nxt(){let i=GS.ord.indexOf(GS.turn),t=0;do{i=(i+1)%GS.ord.length;t++;if(t>GS.ord.length){cw();return;}}while(!GS.pl[GS.ord[i]]?.ok);GS.turn=GS.ord[i];GS.ph='roll';$('dR').textContent='';}
+function bk(pid){const p=GS.pl[pid];if(p.m<0){p.ok=false;lg(`💀 ${p.nm} 파산!`);p.pr.forEach(pos=>{if(GS.own[pos])delete GS.own[pos];});cw();}}
+function cw(){const alive=GS.ord.filter(id=>GS.pl[id]?.ok);if(alive.length<=1){GS.win=alive[0]||GS.ord[0];sv();}}
+function fmt(n){if(Math.abs(n)>=10000)return(n/10000).toFixed(n%10000?1:0)+'만원';return n.toLocaleString('ko-KR')+'원';}
+function slp(ms){return new Promise(r=>setTimeout(r,ms));}
+function lg(msg){if(!GS.lg)GS.lg=[];GS.lg.unshift(msg);if(GS.lg.length>30)GS.lg.pop();$('gl').innerHTML=GS.lg.map(l=>`<div>${l}</div>`).join('');}
+function modal(t,b,btns){$('moC').innerHTML=`<h3>${t}</h3><p>${b}</p><div class="mbs">${btns.map((x,i)=>`<button class="${x.c}" id="mb${i}">${x.t}</button>`).join('')}</div>`;btns.forEach((x,i)=>$('mb'+i).onclick=x.f);$('moB').classList.add('on');}
+function closeM(){$('moB').classList.remove('on');}
+function mA(t,b,btn){return new Promise(r=>{modal(t,b,[{t:btn,c:'my',f:()=>{closeM();r();}}]);});}
+function mC(t,b,y,n){return new Promise(r=>{modal(t,b,[{t:y,c:'my',f:()=>{closeM();r(true);}},{t:n,c:'mn',f:()=>{closeM();r(false);}}]);});}
+async function sv(){if(mode==='online'&&roomId){try{GS.ts=Date.now();await db.collection("game_rooms").doc(roomId).set(JSON.parse(JSON.stringify(GS)));}catch(e){console.error(e);}}else render();}
+window.addEventListener('resize',()=>{if($('game').style.display==='block'){buildBoard();render();}});
+</script>
+</body>
+</html>
