@@ -27,8 +27,8 @@
         .input-retro{width:100%;background:#FFF;border:var(--border-thick);border-radius:16px;padding:14px;font-size:16px;color:var(--text-choco);outline:none;box-shadow:inset 2px 2px 5px rgba(74,44,42,0.1);}
         .tab-section{display:none;}.tab-section.active{display:block;animation:popIn 0.3s;}
         @keyframes popIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}
-        .nav-dock{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:90%;max-width:400px;height:70px;background:var(--text-choco);border-radius:40px;box-shadow:0 10px 20px rgba(74,44,42,0.3);display:flex;justify-content:space-around;align-items:center;padding:0 20px;z-index:100;border:2px solid white;}
-        .nav-item{color:rgba(255,255,255,0.5);font-size:24px;cursor:pointer;transition:0.3s;}
+        .nav-dock{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:92%;max-width:440px;height:70px;background:var(--text-choco);border-radius:40px;box-shadow:0 10px 20px rgba(74,44,42,0.3);display:flex;justify-content:space-around;align-items:center;padding:0 15px;z-index:100;border:2px solid white;}
+        .nav-item{color:rgba(255,255,255,0.5);font-size:22px;cursor:pointer;transition:0.3s;}
         .nav-item.active{color:var(--accent-yellow);transform:translateY(-5px);}
         .receipt-paper{background:white;width:90%;margin:20px auto;padding:20px;border-top:1px solid #ddd;box-shadow:0 5px 15px rgba(0,0,0,0.1);position:relative;font-family:'Nanum Gothic Coding',monospace;}
         .receipt-paper::before{content:"";position:absolute;top:-10px;left:0;width:100%;height:10px;background:radial-gradient(circle at 10px 15px,transparent 10px,white 11px);background-size:20px 20px;}
@@ -67,12 +67,10 @@
         .act-btn.liked{color:var(--accent-red);border-color:var(--accent-red);}
         .heart-pop{animation:heartPop 0.4s ease;}
         @keyframes heartPop{0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
-        /* ★ 좋아요 프로필 영역 여백 수정 */
         .like-profiles{display:flex;align-items:center;gap:6px;margin:10px 0 0 0;padding:0 0 16px 0;flex-wrap:wrap;}
         .like-profiles .like-avatar{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent-red);overflow:hidden;display:flex;align-items:center;justify-content:center;background:white;flex-shrink:0;}
         .like-profiles .like-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
         .like-profiles .like-text{font-size:12px;color:#888;margin-left:2px;}
-        /* 좋아요 없을 때 카드 하단 여백 */
         .feed-bottom-pad{padding-bottom:16px;}
         .cmt-area{background:#FAFAFA;border-top:1px solid #E5D0C0;border-radius:0 0 16px 16px;padding:0;margin-top:15px;display:none;overflow:hidden;}
         .cmt-area.show{display:block;}
@@ -108,7 +106,19 @@
         .modal-tit{font-family:'Jua',sans-serif;font-size:24px;margin-bottom:20px;color:var(--text-choco);display:flex;align-items:center;gap:8px;}
         .modal-btns{display:flex;flex-direction:column;gap:12px;margin-top:25px;}
         .cache-badge{display:inline-block;font-size:10px;background:var(--accent-yellow);color:var(--text-choco);padding:2px 6px;border-radius:8px;margin-left:4px;font-weight:bold;}
-        @media(min-width:768px){.app-layout{padding:40px;}.nav-dock{bottom:auto;top:50%;left:40px;transform:translateY(-50%);width:70px;height:300px;flex-direction:column;padding:30px 0;}.family-grid{grid-template-columns:repeat(3,1fr);}.chatbot-btn{right:50px;bottom:50px;}.chat-window{right:50px;bottom:120px;}}
+        .fallback-badge{display:inline-block;font-size:10px;background:#E0E0E0;color:#666;padding:2px 6px;border-radius:8px;margin-left:4px;font-weight:bold;}
+        /* ═══ 게임 섹션 ═══ */
+        .game-card{background:linear-gradient(135deg,#1a1a2e,#16213e);border:var(--border-thick);border-radius:var(--radius-L);padding:25px;margin:20px;box-shadow:var(--shadow-hard);color:white;cursor:pointer;transition:0.3s;position:relative;overflow:hidden;}
+        .game-card:active{transform:translate(2px,2px);box-shadow:none;}
+        .game-card .game-icon{font-size:48px;margin-bottom:10px;}
+        .game-card h3{font-family:'Jua';font-size:22px;color:#f5c518;margin-bottom:5px;}
+        .game-card p{font-size:13px;color:#aaa;line-height:1.5;}
+        .game-card .badge{position:absolute;top:15px;right:15px;background:#e94560;color:white;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+        .game-section-title{text-align:center;font-family:'Jua';font-size:28px;margin:20px 0 5px;color:var(--text-choco);}
+        .game-section-sub{text-align:center;font-size:13px;color:#999;margin-bottom:15px;}
+        /* 상태 표시 */
+        .ai-status{font-size:11px;color:#999;text-align:center;padding:4px;margin-top:-5px;}
+        @media(min-width:768px){.app-layout{padding:40px;}.nav-dock{bottom:auto;top:50%;left:40px;transform:translateY(-50%);width:70px;height:380px;flex-direction:column;padding:30px 0;}.family-grid{grid-template-columns:repeat(3,1fr);}.chatbot-btn{right:50px;bottom:50px;}.chat-window{right:50px;bottom:120px;}}
     </style>
 </head>
 <body>
@@ -148,6 +158,22 @@
                 <div style="text-align:center;margin-top:20px;font-size:12px;color:#aaa;">*** THANK YOU ***</div>
             </div>
         </div>
+        <div id="games" class="tab-section">
+            <div class="game-section-title">🎮 가족 게임</div>
+            <div class="game-section-sub">가족들과 함께 즐기는 보드게임!</div>
+            <div class="game-card" onclick="window.open('burumable.html','_blank')">
+                <div class="badge">멀티플레이</div>
+                <div class="game-icon">🎲</div>
+                <h3>부루마블</h3>
+                <p>세계 여행 보드게임! 땅을 사고 호텔을 짓자.<br>2~6명 / 한 기기 or 온라인</p>
+            </div>
+            <div class="game-card" style="opacity:0.5;cursor:default;" onclick="alert('곧 추가됩니다!')">
+                <div class="badge" style="background:#666;">준비중</div>
+                <div class="game-icon">🃏</div>
+                <h3>카드 게임</h3>
+                <p>곧 추가될 예정입니다!</p>
+            </div>
+        </div>
         <div id="family" class="tab-section">
             <div style="text-align:center;margin-bottom:20px;font-family:'Jua';font-size:28px;">우리 가족 멤버 👨‍👩‍👧‍👦</div>
             <div id="family-container" class="family-grid"></div>
@@ -157,6 +183,7 @@
         <div class="nav-item active" onclick="changeTab('feed',this)"><i class="fa-solid fa-house"></i></div>
         <div class="nav-item" onclick="changeTab('calendar',this)"><i class="fa-solid fa-calendar-days"></i></div>
         <div class="nav-item" onclick="changeTab('shopping',this)"><i class="fa-solid fa-cart-shopping"></i></div>
+        <div class="nav-item" onclick="changeTab('games',this)"><i class="fa-solid fa-gamepad"></i></div>
         <div class="nav-item" onclick="changeTab('family',this)"><i class="fa-solid fa-users"></i></div>
     </nav>
 </div>
@@ -166,33 +193,55 @@
     <div class="chat-body" id="chatBody"><div class="chat-msg msg-bot">안녕하세요! 가족 AI <b>체리</b>입니다! 🍒<br>무엇이든 물어보세요!</div></div>
     <div class="chat-input-area"><input type="text" id="chatInput" class="chat-inp" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter')sendChat()"><button class="btn-pop" style="width:auto;padding:5px 15px;font-size:14px;" onclick="sendChat()">전송</button></div>
 </div>
-<div id="eventModal" class="modal-bg"><div class="modal-card">
-    <div class="modal-tit">📅 일정 기록</div>
-    <p id="modalDateDisplay" style="text-align:center;font-weight:bold;margin-bottom:20px;"></p>
-    <ul id="eventList" style="list-style:none;margin-bottom:20px;padding:0;"></ul>
-    <input type="text" id="eventTitle" class="input-retro" placeholder="일정 내용" onkeydown="if(event.key==='Enter')saveEvent()">
-    <div class="modal-btns"><button class="btn-pop gray" onclick="closeModal('eventModal')">닫기</button><button class="btn-pop" onclick="saveEvent()">저장</button></div>
-</div></div>
-<div id="familyModal" class="modal-bg"><div class="modal-card">
-    <div class="modal-tit">🍒 가족 추가</div>
-    <div style="text-align:center;margin-bottom:20px;"><label for="famImgInput" style="display:inline-block;cursor:pointer;"><div id="famImgPreview" style="width:100px;height:100px;border-radius:50%;background:var(--bg-cream);border:var(--border-thick);display:flex;align-items:center;justify-content:center;overflow:hidden;"><i class="fa-solid fa-camera" style="font-size:30px;color:var(--text-choco);"></i></div></label><input type="file" id="famImgInput" accept="image/*" style="display:none;" onchange="handleFamImgSelect(event)"></div>
-    <input type="text" id="famRole" class="input-retro" placeholder="역할 (예: 아빠)" style="margin-bottom:10px;">
-    <input type="text" id="famName" class="input-retro" placeholder="이름 (선택)" style="margin-bottom:10px;">
-    <input type="text" id="famDesc" class="input-retro" placeholder="한 마디 소개">
-    <div class="modal-btns"><button class="btn-pop gray" onclick="closeModal('familyModal')">취소</button><button id="btnSaveFam" class="btn-pop" onclick="saveFam()">추가</button></div>
-</div></div>
+<div id="eventModal" class="modal-bg"><div class="modal-card"><div class="modal-tit">📅 일정 기록</div><p id="modalDateDisplay" style="text-align:center;font-weight:bold;margin-bottom:20px;"></p><ul id="eventList" style="list-style:none;margin-bottom:20px;padding:0;"></ul><input type="text" id="eventTitle" class="input-retro" placeholder="일정 내용" onkeydown="if(event.key==='Enter')saveEvent()"><div class="modal-btns"><button class="btn-pop gray" onclick="closeModal('eventModal')">닫기</button><button class="btn-pop" onclick="saveEvent()">저장</button></div></div></div>
+<div id="familyModal" class="modal-bg"><div class="modal-card"><div class="modal-tit">🍒 가족 추가</div><div style="text-align:center;margin-bottom:20px;"><label for="famImgInput" style="display:inline-block;cursor:pointer;"><div id="famImgPreview" style="width:100px;height:100px;border-radius:50%;background:var(--bg-cream);border:var(--border-thick);display:flex;align-items:center;justify-content:center;overflow:hidden;"><i class="fa-solid fa-camera" style="font-size:30px;color:var(--text-choco);"></i></div></label><input type="file" id="famImgInput" accept="image/*" style="display:none;" onchange="handleFamImgSelect(event)"></div><input type="text" id="famRole" class="input-retro" placeholder="역할 (예: 아빠)" style="margin-bottom:10px;"><input type="text" id="famName" class="input-retro" placeholder="이름 (선택)" style="margin-bottom:10px;"><input type="text" id="famDesc" class="input-retro" placeholder="한 마디 소개"><div class="modal-btns"><button class="btn-pop gray" onclick="closeModal('familyModal')">취소</button><button id="btnSaveFam" class="btn-pop" onclick="saveFam()">추가</button></div></div></div>
 
 <script>
-/* ═══ 🔑 API 키 5개 로테이션 ═══ */
-const KEYS=["AIzaSyDCJvEiVEYrCI5x7_YDOipEG5mUFZVKmkI","AIzaSyA8W6gw7yle9T1lypOIHZZazSFzlICtJDw","AIzaSyCp2RHsM2tbI3DU6Ltu2bIg2hIBIxRwDOE","AIzaSyBaSoznZD0eyt6-8KPeK0nCeKwZ9hVpgsY","AIzaSyDK2vSeGGU9b9Olie7nIY1gDvRc3DBjvoU"];
-let _ki=0; function nextKey(){const k=KEYS[_ki];_ki=(_ki+1)%KEYS.length;return k;}
+/* ═══════════════════════════════════════
+   🔑 API 키 5개 + 스마트 로테이션
+   ═══════════════════════════════════════ */
+const KEYS=[
+    "AIzaSyAuzBdkXCbdjPoiCFmW0dUL9UFL09YTa1o",
+    "AIzaSyCk7LCh4S5Nm7zonT51CCo2N9ZJR89njWc",
+    "AIzaSyAk0pxk3wAoDKUJ47gNXMGpnBJKoQVLG-c",
+    "AIzaSyCV8ofHR6abxlHPvSCwVNzjHB_4vFlwljA",
+    "AIzaSyBGVXpnb6jnUSbAQHTh9YixzVHhSkCJseI"
+];
+let _ki=0;
+// 실패한 키 쿨다운 (키별 마지막 실패 시각)
+const keyCooldown={};
+const COOLDOWN_MS=60000; // 실패 후 1분간 해당 키 건너뜀
 
+function getAvailableKey(){
+    const now=Date.now();
+    for(let i=0;i<KEYS.length;i++){
+        const idx=(_ki+i)%KEYS.length;
+        const lastFail=keyCooldown[idx]||0;
+        if(now-lastFail>COOLDOWN_MS){
+            _ki=(idx+1)%KEYS.length;
+            return{key:KEYS[idx],idx};
+        }
+    }
+    // 모든 키 쿨다운 중이면 가장 오래된 것 사용
+    _ki=(_ki+1)%KEYS.length;
+    return{key:KEYS[_ki],idx:_ki};
+}
+
+function markKeyFailed(idx){keyCooldown[idx]=Date.now();}
+function markKeySuccess(idx){delete keyCooldown[idx];}
+
+/* ═══ ★ 수정된 모델 목록 ═══
+   gemini-2.5-flash → 존재하지 않아서 404 발생했음!
+   안정적으로 존재하는 모델만 사용 */
+const MODELS=["gemini-1.5-flash","gemini-1.5-flash-8b","gemini-pro"];
+
+/* ═══ Firebase ═══ */
 const firebaseConfig={apiKey:"AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",authDomain:"our-family-home.firebaseapp.com",projectId:"our-family-home",storageBucket:"our-family-home.firebasestorage.app",messagingSenderId:"446464856858",appId:"1:446464856858:web:344f2c83aeda0ea9ae52a3"};
 firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
 
 function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
 
-/* ═══ 🧠 Fallback AI ═══ */
+/* ═══ 🧠 Fallback AI (강화) ═══ */
 const recipes={"떡볶이":["떡","어묵","대파","고추장","설탕","물"],"김치찌개":["김치","돼지고기","두부","대파","고춧가루"],"된장찌개":["된장","호박","두부","양파","청양고추"],"미역국":["미역","소고기","참기름","국간장","다진마늘"],"카레":["카레가루","감자","당근","양파","식용유"],"라면":["라면","계란","파","떡(선택)"],"비빔밥":["콩나물","시금치","고추장","계란","참기름","당근"],"불고기":["소고기","양파","배","간장","설탕","참기름","마늘"],"잡채":["당면","시금치","당근","양파","버섯","간장","참기름"],"계란말이":["계란","파","당근","소금","식용유"],"김밥":["밥","김","단무지","당근","시금치","계란","햄"],"파스타":["파스타면","올리브오일","마늘","양파","토마토소스"],"볶음밥":["밥","계란","파","당근","간장","참기름"],"닭볶음탕":["닭","감자","당근","양파","고추장","간장","고춧가루"],"샌드위치":["식빵","양상추","토마토","치즈","햄","마요네즈"],"제육볶음":["돼지고기","양파","파","고추장","고춧가루","간장"],"오므라이스":["밥","계란","양파","당근","케첩","버터"],"콩나물국":["콩나물","파","마늘","국간장","소금"],"순두부찌개":["순두부","고춧가루","계란","파","새우젓"],"감자전":["감자","부침가루","식용유","소금"]};
 const mealTips={아침:["토스트 & 계란프라이 ☀️","죽 한 그릇! 🥣","시리얼! 🥛","샌드위치 🥪","바나나 스무디! 🍌"],점심:["비빔밥! 🍚","칼국수! 🍜","김치볶음밥! 🍳","돈까스! 🐷","냉면! 🧊"],저녁:["삼겹살! 🥩","찌개! 🍲","치킨! 🍗","파스타! 🍝","초밥! 🍣"],야식:["라면! 🍜","치킨! 🍗","떡볶이! 🌶️","피자! 🍕","족발! 🐷"],간식:["과일! 🍎","떡! 🍡","쿠키! 🍪","아이스크림! 🍦","고구마! 🍠"]};
 const chat={hi:["안녕! 오늘도 화이팅! 💪","반가워~ 🍒","기분 어때? 😊"],thx:["별말씀을! 😊","도움 됐다니! 🍒","언제든~ ✨"],mood:["나는 항상 좋지! 🍒","에너지 100%! ⚡","열심히 중~ 💪"],bored:["보드게임! 🎲","같이 요리! 👨‍🍳","산책! 📸","넷플릭스! 🎬"],love:["사랑해~ ❤️","가족 화이팅! 💕","사랑 넘쳐! 🥰"],gn:["잘 자~ 🌙","수고했어! ⭐","좋은 하루! 💤"],gm:["좋은 아침! ☀️","아침 뭐 먹을까? 🍳","굿모닝~ 🌅"],tired:["좀 쉬어~ 💆","따뜻한 차? ☕","일찍 자! 😴"],hungry:["뭐 먹고 싶어? 🤔","간식부터! 🍪","장보기에 추가? 🛒"]};
@@ -214,24 +263,104 @@ function cacheKey(t){return t.toLowerCase().replace(/[^가-힣a-z0-9]/g,'').subs
 async function getCache(t){const k=cacheKey(t);if(!k)return null;try{const s=await db.collection("ai_cache").doc(k).get();if(s.exists){const d=s.data();if(Date.now()-(d.timestamp?.toMillis?.()||0)<86400000)return d.response;}}catch(e){}return null;}
 async function setCache(t,r){const k=cacheKey(t);if(!k||k.length<3)return;try{await db.collection("ai_cache").doc(k).set({query:t,response:r,timestamp:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}}
 
-/* ═══ 🤖 AI 채팅 ═══ */
-const MODELS=["gemini-2.5-flash","gemini-2.0-flash","gemini-1.5-flash"];
+/* ═══════════════════════════════════════
+   🤖 AI 채팅 - 강화된 에러 핸들링
+   ═══════════════════════════════════════ */
 async function sendChat(){
-    const input=document.getElementById('chatInput'),text=input.value.trim();if(!text)return;
-    appendMsg(text,'user');input.value='';const lid=appendLoading();
-    const cached=await getCache(text);
-    if(cached){document.getElementById(lid).remove();appendMsg(cached+' <span class="cache-badge">⚡캐시</span>','bot');handleActions(cached);return;}
-    const sys=`너는 '체리'라는 가족 AI 비서야. 친근한 반말, 이모지 사용. [기능] 1.일정:{"action":"add_event","date":"YYYY-MM-DD","title":"내용"}(오늘:${new Date().toISOString().split('T')[0]}) 2.장보기:{"action":"add_shopping","item":"물건"} 3.여러개:{"action":"add_shopping_multi","items":["a","b"]} 4.그외:텍스트. 재료 추가 시 실제 재료명을 items에!`;
-    let aiText="",ok=false;
-    for(const model of MODELS){for(let k=0;k<KEYS.length;k++){const key=nextKey();try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:"user",parts:[{text:sys+"\nUser: "+text}]}]})});if(r.status===429)continue;if(!r.ok)throw new Error(r.status);const d=await r.json();aiText=d.candidates[0].content.parts[0].text;ok=true;break;}catch(e){}}if(ok)break;}
-    document.getElementById(lid).remove();
-    if(!ok){const fb=fallbackAI(text);aiText=fb.text;if(fb.action)execAction(fb.action);appendMsg(aiText,'bot');return;}
-    setCache(text,aiText);handleActions(aiText);appendMsg(aiText,'bot');
+    const input=document.getElementById('chatInput'),text=input.value.trim();
+    if(!text)return;
+    appendMsg(text,'user');input.value='';
+    const lid=appendLoading();
+    
+    // 1) 캐시 체크
+    try{
+        const cached=await getCache(text);
+        if(cached){document.getElementById(lid)?.remove();appendMsg(cached+' <span class="cache-badge">⚡캐시</span>','bot');handleActions(cached);return;}
+    }catch(e){/* cache miss, continue */}
+    
+    const sys=`너는 '체리'라는 가족 AI 비서야. 친근한 반말, 이모지 사용. [기능] 1.일정:{"action":"add_event","date":"YYYY-MM-DD","title":"내용"}(오늘:${new Date().toISOString().split('T')[0]}) 2.장보기:{"action":"add_shopping","item":"물건"} 3.여러개:{"action":"add_shopping_multi","items":["a","b"]} 4.그외:텍스트. 짧고 간결하게 답해!`;
+    
+    let aiText="",ok=false,lastError="";
+    
+    // 2) 모델 × 키 조합 시도 (429시 2초 대기 후 다음 키)
+    for(const model of MODELS){
+        if(ok)break;
+        for(let attempt=0;attempt<KEYS.length;attempt++){
+            const{key,idx}=getAvailableKey();
+            try{
+                const controller=new AbortController();
+                const timeout=setTimeout(()=>controller.abort(),10000);
+                
+                const r=await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+                    {method:'POST',headers:{'Content-Type':'application/json'},
+                     signal:controller.signal,
+                     body:JSON.stringify({contents:[{role:"user",parts:[{text:sys+"\nUser: "+text}]}]})}
+                );
+                clearTimeout(timeout);
+                
+                if(r.status===429){
+                    markKeyFailed(idx);
+                    lastError="429";
+                    await new Promise(r=>setTimeout(r,3000)); // 3초 대기
+                    continue;
+                }
+                if(r.status===403){
+                    markKeyFailed(idx);
+                    lastError="403";
+                    continue;
+                }
+                if(r.status===404||r.status===400){
+                    lastError=String(r.status);
+                    break; // 이 모델 안됨 → 다음 모델로
+                }
+                if(!r.ok){
+                    markKeyFailed(idx);
+                    lastError=String(r.status);
+                    continue;
+                }
+                
+                const d=await r.json();
+                if(d.candidates&&d.candidates[0]&&d.candidates[0].content){
+                    aiText=d.candidates[0].content.parts[0].text;
+                    markKeySuccess(idx);
+                    ok=true;
+                    break;
+                } else {
+                    lastError="empty";
+                    continue;
+                }
+            }catch(e){
+                if(e.name==='AbortError'){lastError="timeout";}
+                else{lastError=e.message;}
+                markKeyFailed(idx);
+                continue;
+            }
+        }
+    }
+    
+    document.getElementById(lid)?.remove();
+    
+    // 3) 성공 시
+    if(ok&&aiText){
+        setCache(text,aiText);
+        handleActions(aiText);
+        appendMsg(aiText,'bot');
+        return;
+    }
+    
+    // 4) 전부 실패 → Fallback AI
+    console.warn(`[체리] API 모두 실패 (마지막: ${lastError}), 오프라인 모드`);
+    const fb=fallbackAI(text);
+    aiText=fb.text;
+    if(fb.action)execAction(fb.action);
+    appendMsg(aiText+' <span class="fallback-badge">🍒오프라인</span>','bot');
 }
+
 function handleActions(t){if(!t.includes('{"action"'))return;try{const m=t.match(/\{"action":[^}]*\]/)||t.match(/\{"action":[^}]*\}/);if(m)execAction(JSON.parse(m[0]));}catch(e){}}
 function execAction(c){if(c.action==='add_event')db.collection("family_events").add({date:c.date,title:c.title,timestamp:firebase.firestore.FieldValue.serverTimestamp()});else if(c.action==='add_shopping')db.collection("family_shopping").add({text:c.item,checked:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()});else if(c.action==='add_shopping_multi')c.items.forEach(i=>db.collection("family_shopping").add({text:i,checked:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()}));}
 function appendMsg(t,s){const b=document.getElementById('chatBody');b.innerHTML+=`<div class="chat-msg msg-${s}">${marked.parse(t)}</div>`;b.scrollTop=b.scrollHeight;}
-function appendLoading(){const id='l'+Date.now();document.getElementById('chatBody').innerHTML+=`<div class="chat-msg msg-bot typing-indicator" id="${id}"><span></span><span></span><span></span></div>`;return id;}
+function appendLoading(){const id='l'+Date.now();document.getElementById('chatBody').innerHTML+=`<div class="chat-msg msg-bot typing-indicator" id="${id}"><span></span><span></span><span></span></div>`;const b=document.getElementById('chatBody');b.scrollTop=b.scrollHeight;return id;}
 function toggleChat(){const w=document.getElementById('chatWindow');w.style.display=w.style.display==='flex'?'none':'flex';}
 
 /* ═══ 👨‍👩‍👧‍👦 가족 ═══ */
@@ -272,107 +401,38 @@ function addPost(){
     .then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerText="업로드!";window.scrollTo(0,0);})
     .catch(()=>{alert("실패!");btn.disabled=false;btn.innerText="업로드!";});
 }
-
-/* ★ 핵심 수정: 좋아요 시 role + imageUrl을 함께 저장 */
-function likePost(id, likedByDataArr) {
-    if(!selectedRole) return alert("프로필을 선택해주세요!");
-    const likedByData = likedByDataArr || [];
-    const already = likedByData.find(x => x.role === selectedRole);
-    const mem = familyData.find(m => m.role === selectedRole);
-    const myImg = mem ? mem.imageUrl || null : null;
-    
-    if(already) {
-        // 좋아요 취소: likedBy와 likedByData 모두에서 제거
-        db.collection("family_posts").doc(id).update({
-            likedBy: firebase.firestore.FieldValue.arrayRemove(selectedRole),
-            likedByData: firebase.firestore.FieldValue.arrayRemove(already)
-        });
-    } else {
-        // 좋아요 추가: likedBy에 role, likedByData에 {role, img} 저장
-        db.collection("family_posts").doc(id).update({
-            likedBy: firebase.firestore.FieldValue.arrayUnion(selectedRole),
-            likedByData: firebase.firestore.FieldValue.arrayUnion({ role: selectedRole, img: myImg })
-        });
-        const b=document.querySelector(`[data-like-id="${id}"]`);
-        if(b){b.classList.add('heart-pop');setTimeout(()=>b.classList.remove('heart-pop'),400);}
+function likePost(id,likedByDataArr){
+    if(!selectedRole)return alert("프로필을 선택해주세요!");
+    const likedByData=likedByDataArr||[];
+    const already=likedByData.find(x=>x.role===selectedRole);
+    const mem=familyData.find(m=>m.role===selectedRole);
+    const myImg=mem?mem.imageUrl||null:null;
+    if(already){
+        db.collection("family_posts").doc(id).update({likedBy:firebase.firestore.FieldValue.arrayRemove(selectedRole),likedByData:firebase.firestore.FieldValue.arrayRemove(already)});
+    }else{
+        db.collection("family_posts").doc(id).update({likedBy:firebase.firestore.FieldValue.arrayUnion(selectedRole),likedByData:firebase.firestore.FieldValue.arrayUnion({role:selectedRole,img:myImg})});
+        const b=document.querySelector(`[data-like-id="${id}"]`);if(b){b.classList.add('heart-pop');setTimeout(()=>b.classList.remove('heart-pop'),400);}
     }
 }
-
 function renderFeed(posts){
     const con=document.getElementById('feed-container');con.innerHTML="";
     if(!posts.length){con.innerHTML=`<div style="text-align:center;padding:40px;color:#aaa;">첫 글을 남겨보세요! 🍒</div>`;return;}
     posts.forEach(d=>{
-        let authorImgUrl=d.authorImg;
-        if(!authorImgUrl){const mem=familyData.find(m=>m.role===d.author);if(mem)authorImgUrl=mem.imageUrl;}
+        let authorImgUrl=d.authorImg;if(!authorImgUrl){const mem=familyData.find(m=>m.role===d.author);if(mem)authorImgUrl=mem.imageUrl;}
         const pImg=authorImgUrl?`<div class="fp-img"><img src="${authorImgUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`:`<div class="fp-img"><i class="fa-solid fa-user"></i></div>`;
         const iHtml=d.imageUrl?`<div class="feed-photo"><img src="${d.imageUrl}"></div>`:'';
-        const likedBy=d.likedBy||[];
-        const likedByData=d.likedByData||[];
-        const lc=likedBy.length;
-        const iL=selectedRole&&likedBy.includes(selectedRole);
-
-        /* ★ 핵심: likedByData에서 이미지 URL 직접 사용 (familyData 의존 제거) */
+        const likedBy=d.likedBy||[],likedByData=d.likedByData||[],lc=likedBy.length,iL=selectedRole&&likedBy.includes(selectedRole);
         let lpH='';
-        if(lc>0){
-            lpH='<div class="like-profiles">';
-            likedByData.slice(0,8).forEach(ld=>{
-                if(ld.img){
-                    lpH+=`<div class="like-avatar"><img src="${ld.img}"></div>`;
-                } else {
-                    // img 없는 경우 familyData에서 찾기 (하위 호환)
-                    const mem=familyData.find(m=>m.role===ld.role);
-                    if(mem&&mem.imageUrl) lpH+=`<div class="like-avatar"><img src="${mem.imageUrl}"></div>`;
-                    else lpH+=`<div class="like-avatar"><i class="fa-solid fa-user" style="font-size:10px;color:#bbb;"></i></div>`;
-                }
-            });
-            // likedByData가 비어있는 옛 게시물 호환
-            if(likedByData.length===0){
-                likedBy.slice(0,8).forEach(role=>{
-                    const mem=familyData.find(m=>m.role===role);
-                    if(mem&&mem.imageUrl) lpH+=`<div class="like-avatar"><img src="${mem.imageUrl}"></div>`;
-                    else lpH+=`<div class="like-avatar"><i class="fa-solid fa-user" style="font-size:10px;color:#bbb;"></i></div>`;
-                });
-            }
-            lpH+=`<span class="like-text"><b>${likedBy.join(', ')}</b>님이 좋아합니다</span></div>`;
-        }
-
-        let cmH='';
-        if(d.comments&&d.comments.length>0)d.comments.forEach((c,i)=>{
-            // 댓글 아바타도 familyData + authorImg 둘 다 체크
-            let cmtImgHtml=getMemberImg(c.author);
-            cmH+=`<div class="cmt-single"><div class="cmt-avatar">${cmtImgHtml}</div><div class="cmt-body"><span class="cmt-author">${c.author}</span><span class="cmt-text">${c.text}</span></div><button class="cmt-del" onclick="delComment('${d.id}',${i})"><i class="fa-solid fa-times"></i></button></div>`;
-        });
+        if(lc>0){lpH='<div class="like-profiles">';
+            if(likedByData.length>0){likedByData.slice(0,8).forEach(ld=>{if(ld.img)lpH+=`<div class="like-avatar"><img src="${ld.img}"></div>`;else{const mem=familyData.find(m=>m.role===ld.role);lpH+=mem&&mem.imageUrl?`<div class="like-avatar"><img src="${mem.imageUrl}"></div>`:`<div class="like-avatar"><i class="fa-solid fa-user" style="font-size:10px;color:#bbb;"></i></div>`;}});}
+            else{likedBy.slice(0,8).forEach(role=>{const mem=familyData.find(m=>m.role===role);lpH+=mem&&mem.imageUrl?`<div class="like-avatar"><img src="${mem.imageUrl}"></div>`:`<div class="like-avatar"><i class="fa-solid fa-user" style="font-size:10px;color:#bbb;"></i></div>`;});}
+            lpH+=`<span class="like-text"><b>${likedBy.join(', ')}</b>님이 좋아합니다</span></div>`;}
+        let cmH='';if(d.comments&&d.comments.length>0)d.comments.forEach((c,i)=>{cmH+=`<div class="cmt-single"><div class="cmt-avatar">${getMemberImg(c.author)}</div><div class="cmt-body"><span class="cmt-author">${c.author}</span><span class="cmt-text">${c.text}</span></div><button class="cmt-del" onclick="delComment('${d.id}',${i})"><i class="fa-solid fa-times"></i></button></div>`;});
         const ts=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleDateString('ko-KR',{month:'long',day:'numeric'}):'방금';
-        
-        // ★ likedByData를 onclick에 전달 (JSON escape)
-        const likedByDataSafe = JSON.stringify(likedByData).replace(/"/g,'&quot;');
-
-        con.innerHTML+=`<div class="retro-card" style="padding-bottom:0;overflow:hidden;">
-            <div class="feed-head"><div class="feed-profile">${pImg}<div><h4 style="font-size:15px;">${d.author}</h4><span style="font-size:12px;color:#999;">${ts}</span></div></div><button onclick="delPost('${d.id}')" style="border:none;background:none;color:#bbb;cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:14px;"></i></button></div>
-            <div style="margin-bottom:12px;font-size:15px;line-height:1.6;">${d.content}</div>${iHtml}
-            <div style="display:flex;gap:12px;padding:8px 0;">
-                <button class="act-btn ${iL?'liked':''}" data-like-id="${d.id}" onclick='likePost("${d.id}",${JSON.stringify(likedByData)})'><i class="${iL?'fa-solid fa-heart':'fa-regular fa-heart'}" style="font-size:18px;"></i> ${lc||''}</button>
-                <button class="act-btn" onclick="toggleCmt('${d.id}')"><i class="fa-regular fa-comment" style="font-size:18px;"></i> ${d.comments?d.comments.length:''}</button>
-            </div>
-            ${lpH}
-            ${lc===0?'<div class="feed-bottom-pad"></div>':''}
-            <div id="cmt-${d.id}" class="cmt-area">
-                <div class="cmt-list">${cmH||'<div style="text-align:center;padding:20px;color:#ccc;font-size:13px;">아직 댓글이 없어요</div>'}</div>
-                <div class="cmt-input-bar"><div class="cmt-my-avatar">${getMyAvatarHtml()}</div><input type="text" id="cInp-${d.id}" placeholder="댓글 달기..." onkeydown="if(event.key==='Enter')addCmt('${d.id}')"><button class="cmt-send-btn" onclick="addCmt('${d.id}')">게시</button></div>
-            </div></div>`;
+        con.innerHTML+=`<div class="retro-card" style="padding-bottom:0;overflow:hidden;"><div class="feed-head"><div class="feed-profile">${pImg}<div><h4 style="font-size:15px;">${d.author}</h4><span style="font-size:12px;color:#999;">${ts}</span></div></div><button onclick="delPost('${d.id}')" style="border:none;background:none;color:#bbb;cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:14px;"></i></button></div><div style="margin-bottom:12px;font-size:15px;line-height:1.6;">${d.content}</div>${iHtml}<div style="display:flex;gap:12px;padding:8px 0;"><button class="act-btn ${iL?'liked':''}" data-like-id="${d.id}" onclick='likePost("${d.id}",${JSON.stringify(likedByData)})'><i class="${iL?'fa-solid fa-heart':'fa-regular fa-heart'}" style="font-size:18px;"></i> ${lc||''}</button><button class="act-btn" onclick="toggleCmt('${d.id}')"><i class="fa-regular fa-comment" style="font-size:18px;"></i> ${d.comments?d.comments.length:''}</button></div>${lpH}${lc===0?'<div class="feed-bottom-pad"></div>':''}<div id="cmt-${d.id}" class="cmt-area"><div class="cmt-list">${cmH||'<div style="text-align:center;padding:20px;color:#ccc;font-size:13px;">아직 댓글이 없어요</div>'}</div><div class="cmt-input-bar"><div class="cmt-my-avatar">${getMyAvatarHtml()}</div><input type="text" id="cInp-${d.id}" placeholder="댓글 달기..." onkeydown="if(event.key==='Enter')addCmt('${d.id}')"><button class="cmt-send-btn" onclick="addCmt('${d.id}')">게시</button></div></div></div>`;
     });
 }
-
-function loadFeed(){
-    db.collection("family_posts").limit(20).onSnapshot(snap=>{
-        let posts=[];
-        snap.forEach(d=>{const data=d.data();if(!data.likedBy)data.likedBy=[];if(!data.likedByData)data.likedByData=[];posts.push({id:d.id,...data});});
-        posts.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
-        if(!familyLoaded){pendingPosts=posts;return;}
-        renderFeed(posts);
-    });
-}
-
+function loadFeed(){db.collection("family_posts").limit(20).onSnapshot(snap=>{let posts=[];snap.forEach(d=>{const data=d.data();if(!data.likedBy)data.likedBy=[];if(!data.likedByData)data.likedByData=[];posts.push({id:d.id,...data});});posts.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));if(!familyLoaded){pendingPosts=posts;return;}renderFeed(posts);});}
 function delPost(id){if(confirm("삭제할까요?"))db.collection("family_posts").doc(id).delete();}
 function toggleCmt(id){document.getElementById(`cmt-${id}`).classList.toggle('show');}
 function addCmt(id){if(!selectedRole)return alert("프로필을 선택해주세요!");const t=document.getElementById(`cInp-${id}`).value.trim();if(!t)return;db.collection("family_posts").doc(id).update({comments:firebase.firestore.FieldValue.arrayUnion({author:selectedRole,text:t,time:Date.now()})});document.getElementById(`cInp-${id}`).value='';}
@@ -387,7 +447,6 @@ function renderEvList(){const el=document.getElementById('eventList'),evs=events
 function saveEvent(){const t=document.getElementById('eventTitle').value;if(curModDate&&t)db.collection("family_events").add({date:curModDate,title:t,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{document.getElementById('eventTitle').value='';closeModal('eventModal');});}
 function delEv(id){if(confirm("삭제?"))db.collection("family_events").doc(id).delete();}
 db.collection("family_events").onSnapshot(s=>{events=[];s.forEach(d=>events.push({id:d.id,...d.data()}));loadCal();if(curModDate)renderEvList();});
-
 let famImg=null;
 function closeModal(id){document.getElementById(id).style.display='none';famImg=null;curModDate=null;}
 function openFamModal(){document.getElementById('familyModal').style.display='flex';}
