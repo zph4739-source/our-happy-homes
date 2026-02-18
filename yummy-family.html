@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Yummy Family Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=DM+Serif+Display&family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic+Coding&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root{--bg-cream:#FFFDF5;--text-choco:#4A2c2A;--accent-red:#D94844;--accent-pink:#FFD1D1;--accent-yellow:#FFD56B;--border-thick:2px solid #4A2c2A;--shadow-hard:4px 4px 0px #4A2c2A;--radius-L:20px;}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+        body{font-family:'Noto Sans KR',sans-serif;background-color:var(--bg-cream);color:var(--text-choco);min-height:100vh;overflow-x:hidden;padding-bottom:120px;}
+        .app-layout{max-width:600px;margin:0 auto;padding-bottom:120px;position:relative;}
+        .header{padding:20px 24px;text-align:center;position:sticky;top:0;z-index:50;background:rgba(255,253,245,0.95);backdrop-filter:blur(5px);border-bottom:var(--border-thick);}
+        .brand-title{font-family:'DM Serif Display',serif;font-size:32px;color:var(--accent-red);text-shadow:2px 2px 0px var(--text-choco);letter-spacing:1px;margin-bottom:5px;}
+        .brand-sub{font-family:'Jua',sans-serif;font-size:16px;color:var(--text-choco);}
+        .my-badge{position:absolute;right:20px;top:25px;width:40px;height:40px;background:white;border:var(--border-thick);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:var(--shadow-hard);}
+        .my-badge img{width:100%;height:100%;object-fit:cover;}
+        .retro-card{background:white;border:var(--border-thick);border-radius:var(--radius-L);padding:24px;margin:24px 20px;box-shadow:var(--shadow-hard);position:relative;transition:0.2s;}
+        .btn-pop{background:var(--accent-red);color:white;border:var(--border-thick);padding:14px 24px;border-radius:50px;font-family:'Jua',sans-serif;font-size:18px;cursor:pointer;box-shadow:var(--shadow-hard);transition:0.2s;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;}
+        .btn-pop:active{transform:translate(2px,2px);box-shadow:none;background:#C0392B;}
+        .btn-pop.yellow{background:var(--accent-yellow);color:var(--text-choco);}
+        .btn-pop.gray{background:#E0E0E0;color:#555;border-color:#999;box-shadow:2px 2px 0px #999;}
+        .input-retro{width:100%;background:#FFF;border:var(--border-thick);border-radius:16px;padding:14px;font-size:16px;color:var(--text-choco);outline:none;box-shadow:inset 2px 2px 5px rgba(74,44,42,0.1);}
+        .tab-section{display:none;}.tab-section.active{display:block;animation:popIn 0.3s;}
+        @keyframes popIn{from{opacity:0;transform:scale(0.95);}to{opacity:1;transform:scale(1);}}
+        .nav-dock{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);width:90%;max-width:400px;height:70px;background:var(--text-choco);border-radius:40px;box-shadow:0 10px 20px rgba(74,44,42,0.3);display:flex;justify-content:space-around;align-items:center;padding:0 20px;z-index:100;border:2px solid white;}
+        .nav-item{color:rgba(255,255,255,0.5);font-size:24px;cursor:pointer;transition:0.3s;}
+        .nav-item.active{color:var(--accent-yellow);transform:translateY(-5px);}
+        .receipt-paper{background:white;width:90%;margin:20px auto;padding:20px;border-top:1px solid #ddd;box-shadow:0 5px 15px rgba(0,0,0,0.1);position:relative;font-family:'Nanum Gothic Coding',monospace;}
+        .receipt-paper::before{content:"";position:absolute;top:-10px;left:0;width:100%;height:10px;background:radial-gradient(circle at 10px 15px,transparent 10px,white 11px);background-size:20px 20px;}
+        .receipt-paper::after{content:"";position:absolute;bottom:-10px;left:0;width:100%;height:10px;background:radial-gradient(circle at 10px -5px,transparent 10px,white 11px);background-size:20px 20px;}
+        .receipt-title{text-align:center;font-size:20px;border-bottom:2px dashed #444;padding-bottom:10px;margin-bottom:15px;font-weight:bold;}
+        .shop-input-area{display:flex;gap:10px;margin-bottom:15px;}
+        .shop-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #ddd;font-size:16px;}
+        .shop-check{width:20px;height:20px;border:2px solid var(--text-choco);border-radius:4px;margin-right:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+        .shop-check.on{background:var(--accent-red);}
+        .shop-del{color:#aaa;cursor:pointer;padding:5px;}
+        .chatbot-btn{position:fixed;bottom:100px;right:20px;width:60px;height:60px;background:var(--accent-red);border:var(--border-thick);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;color:white;box-shadow:var(--shadow-hard);cursor:pointer;z-index:999;transition:0.2s;}
+        .chatbot-btn:active{transform:translate(2px,2px);box-shadow:none;}
+        .chat-window{position:fixed;bottom:170px;right:20px;width:320px;height:480px;background:white;border:var(--border-thick);border-radius:20px;display:none;flex-direction:column;z-index:999;box-shadow:10px 10px 0px rgba(0,0,0,0.2);overflow:hidden;}
+        .chat-head{background:var(--accent-yellow);padding:15px;border-bottom:var(--border-thick);font-family:'Jua';font-size:18px;display:flex;justify-content:space-between;align-items:center;}
+        .chat-body{flex:1;padding:15px;overflow-y:auto;background:#fffdf5;font-size:14px;}
+        .chat-msg{margin-bottom:10px;max-width:85%;padding:10px 14px;border-radius:12px;line-height:1.4;border:1px solid rgba(0,0,0,0.1);word-break:keep-all;}
+        .msg-bot{background:white;border-radius:4px 12px 12px 12px;}
+        .msg-user{background:var(--accent-pink);margin-left:auto;border-radius:12px 12px 4px 12px;}
+        .chat-input-area{padding:10px;border-top:var(--border-thick);display:flex;gap:5px;background:white;}
+        .chat-inp{flex:1;border:1px solid #444;border-radius:20px;padding:10px;outline:none;}
+        .typing-indicator span{display:inline-block;width:6px;height:6px;background:#aaa;border-radius:50%;margin:0 2px;animation:typing 1s infinite;}
+        .typing-indicator span:nth-child(2){animation-delay:0.2s;}.typing-indicator span:nth-child(3){animation-delay:0.4s;}
+        @keyframes typing{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+        .writer-scroll{display:flex;gap:12px;margin-bottom:20px;overflow-x:auto;padding:5px;scrollbar-width:none;}
+        .writer-scroll::-webkit-scrollbar{display:none;}
+        .radio-hidden{display:none;}
+        .writer-tag{padding:8px 16px;background:white;border:var(--border-thick);border-radius:30px;font-family:'Jua',sans-serif;font-size:16px;color:var(--text-choco);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;box-shadow:2px 2px 0px rgba(74,44,42,0.2);}
+        .radio-hidden:checked+.writer-tag{background:var(--accent-red);color:white;box-shadow:var(--shadow-hard);transform:translateY(-2px);}
+        .img-preview{width:100%;border:var(--border-thick);border-radius:16px;margin-top:15px;overflow:hidden;position:relative;display:none;background:white;}
+        .feed-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px dashed #E5D0C0;padding-bottom:10px;}
+        .feed-profile{display:flex;align-items:center;gap:10px;}
+        .fp-img{width:45px;height:45px;border-radius:50%;border:var(--border-thick);background:white;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+        .feed-photo{padding:10px;background:white;border:var(--border-thick);transform:rotate(-1deg);margin-bottom:15px;box-shadow:3px 3px 0px rgba(0,0,0,0.1);}
+        .feed-photo img{width:100%;border:1px solid #eee;display:block;}
+        .act-btn{padding:8px 12px;background:var(--bg-cream);border:2px solid #E5D0C0;border-radius:12px;font-weight:700;font-size:13px;color:var(--text-choco);display:flex;gap:6px;align-items:center;cursor:pointer;transition:0.2s;}
+        .act-btn.liked{color:var(--accent-red);border-color:var(--accent-red);}
+        .heart-pop{animation:heartPop 0.4s ease;}
+        @keyframes heartPop{0%{transform:scale(1);}50%{transform:scale(1.4);}100%{transform:scale(1);}}
+        /* ★ 좋아요 프로필 영역 여백 수정 */
+        .like-profiles{display:flex;align-items:center;gap:6px;margin:10px 0 0 0;padding:0 0 16px 0;flex-wrap:wrap;}
+        .like-profiles .like-avatar{width:24px;height:24px;border-radius:50%;border:2px solid var(--accent-red);overflow:hidden;display:flex;align-items:center;justify-content:center;background:white;flex-shrink:0;}
+        .like-profiles .like-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+        .like-profiles .like-text{font-size:12px;color:#888;margin-left:2px;}
+        /* 좋아요 없을 때 카드 하단 여백 */
+        .feed-bottom-pad{padding-bottom:16px;}
+        .cmt-area{background:#FAFAFA;border-top:1px solid #E5D0C0;border-radius:0 0 16px 16px;padding:0;margin-top:15px;display:none;overflow:hidden;}
+        .cmt-area.show{display:block;}
+        .cmt-list{max-height:300px;overflow-y:auto;padding:12px 16px;}
+        .cmt-list::-webkit-scrollbar{width:4px;}.cmt-list::-webkit-scrollbar-thumb{background:#ddd;border-radius:4px;}
+        .cmt-single{display:flex;align-items:flex-start;gap:10px;padding:10px 0;position:relative;}
+        .cmt-single:not(:last-child){border-bottom:1px solid #f0e8df;}
+        .cmt-avatar{width:32px;height:32px;min-width:32px;border-radius:50%;border:1.5px solid #E5D0C0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:white;}
+        .cmt-avatar img{width:100%;height:100%;object-fit:cover;}
+        .cmt-body{flex:1;}
+        .cmt-author{font-weight:700;font-size:13px;color:var(--text-choco);margin-right:6px;}
+        .cmt-text{font-size:13px;color:#333;line-height:1.5;}
+        .cmt-del{position:absolute;right:0;top:12px;border:none;background:none;color:#ccc;cursor:pointer;font-size:12px;padding:4px;}
+        .cmt-del:hover{color:var(--accent-red);}
+        .cmt-input-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid #eee;background:white;}
+        .cmt-input-bar .cmt-my-avatar{width:28px;height:28px;min-width:28px;border-radius:50%;border:1.5px solid #E5D0C0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:white;}
+        .cmt-input-bar .cmt-my-avatar img{width:100%;height:100%;object-fit:cover;}
+        .cmt-input-bar input{flex:1;border:none;outline:none;font-size:14px;padding:8px 0;background:transparent;color:var(--text-choco);}
+        .cmt-input-bar input::placeholder{color:#bbb;}
+        .cmt-send-btn{border:none;background:none;color:var(--accent-red);font-weight:700;font-size:14px;cursor:pointer;font-family:'Jua',sans-serif;padding:4px 8px;}
+        .cal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+        .cal-title{font-family:'DM Serif Display',serif;font-size:32px;color:var(--accent-red);}
+        .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;}
+        .date-box{min-height:70px;background:white;border:2px solid #E5D0C0;border-radius:12px;display:flex;flex-direction:column;align-items:center;padding:5px;cursor:pointer;}
+        .date-box.today{background:var(--accent-yellow);border:var(--border-thick);}
+        .ev-badge{width:8px;height:8px;background:var(--accent-red);border-radius:50%;border:1px solid var(--text-choco);margin-top:4px;}
+        .family-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;padding:0 10px;}
+        .mem-card{background:white;border:var(--border-thick);border-radius:24px;padding:20px 10px;text-align:center;box-shadow:var(--shadow-hard);position:relative;}
+        .mem-pic{width:80px;height:80px;border-radius:50%;border:var(--border-thick);margin-bottom:10px;background:var(--bg-cream);display:flex;align-items:center;justify-content:center;margin-left:auto;margin-right:auto;overflow:hidden;}
+        .add-card{border:2px dashed var(--text-choco);background:rgba(255,255,255,0.5);box-shadow:none;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;min-height:200px;gap:10px;}
+        .modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(74,44,42,0.6);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+        .modal-card{background:var(--bg-cream);width:85%;max-width:350px;padding:25px;border:var(--border-thick);border-radius:var(--radius-L);box-shadow:8px 8px 0px rgba(0,0,0,0.2);}
+        .modal-tit{font-family:'Jua',sans-serif;font-size:24px;margin-bottom:20px;color:var(--text-choco);display:flex;align-items:center;gap:8px;}
+        .modal-btns{display:flex;flex-direction:column;gap:12px;margin-top:25px;}
+        .cache-badge{display:inline-block;font-size:10px;background:var(--accent-yellow);color:var(--text-choco);padding:2px 6px;border-radius:8px;margin-left:4px;font-weight:bold;}
+        @media(min-width:768px){.app-layout{padding:40px;}.nav-dock{bottom:auto;top:50%;left:40px;transform:translateY(-50%);width:70px;height:300px;flex-direction:column;padding:30px 0;}.family-grid{grid-template-columns:repeat(3,1fr);}.chatbot-btn{right:50px;bottom:50px;}.chat-window{right:50px;bottom:120px;}}
+    </style>
+</head>
+<body>
+<div class="app-layout">
+    <header class="header">
+        <div class="brand-title">Yummy Family</div>
+        <div class="brand-sub">우리 가족의 맛있는 일상 🍒</div>
+        <div class="my-badge" id="headerProfile"><i class="fa-solid fa-user"></i></div>
+    </header>
+    <main>
+        <div id="feed" class="tab-section active">
+            <div class="retro-card">
+                <div style="font-family:'Jua';font-size:20px;margin-bottom:15px;"><i class="fa-solid fa-pen-fancy" style="color:var(--accent-red);"></i> 오늘의 추억 기록</div>
+                <div class="writer-scroll" id="writerChips"><div style="font-size:14px;color:#aaa;padding:10px;">로딩 중...</div></div>
+                <textarea id="postContent" class="input-retro" style="min-height:100px;resize:none;" placeholder="오늘 무슨 일이 있었나요? 🍰"></textarea>
+                <div id="imagePreviewBox" class="img-preview"><img id="imagePreview" src=""><button onclick="clearImage()" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.5);color:white;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;"><i class="fa-solid fa-times"></i></button></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;">
+                    <label for="imageInput" style="font-size:24px;color:var(--text-choco);cursor:pointer;"><i class="fa-regular fa-image"></i></label>
+                    <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageSelect(event)">
+                    <button id="btnPost" class="btn-pop" style="width:auto;padding:10px 30px;" onclick="addPost()">업로드!</button>
+                </div>
+            </div>
+            <div id="feed-container"></div>
+        </div>
+        <div id="calendar" class="tab-section">
+            <div class="retro-card">
+                <div class="cal-top"><button onclick="moveMonth(-1)" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-choco);"><i class="fa-solid fa-chevron-left"></i></button><div id="month-display" class="cal-title"></div><button onclick="moveMonth(1)" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-choco);"><i class="fa-solid fa-chevron-right"></i></button></div>
+                <div class="cal-grid" style="margin-bottom:10px;"><div style="color:var(--accent-red)">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+                <div id="calendar-days" class="cal-grid"></div>
+            </div>
+        </div>
+        <div id="shopping" class="tab-section">
+            <div class="receipt-paper">
+                <div class="receipt-title">🛒 장보기 리스트</div>
+                <div class="shop-input-area"><input type="text" id="shopInput" class="input-retro" placeholder="살 것 입력" onkeydown="if(event.key==='Enter')addShopItem()"><button class="btn-pop" style="width:auto;" onclick="addShopItem()">+</button></div>
+                <div id="shopList"></div>
+                <div style="text-align:center;margin-top:20px;font-size:12px;color:#aaa;">*** THANK YOU ***</div>
+            </div>
+        </div>
+        <div id="family" class="tab-section">
+            <div style="text-align:center;margin-bottom:20px;font-family:'Jua';font-size:28px;">우리 가족 멤버 👨‍👩‍👧‍👦</div>
+            <div id="family-container" class="family-grid"></div>
+        </div>
+    </main>
+    <nav class="nav-dock">
+        <div class="nav-item active" onclick="changeTab('feed',this)"><i class="fa-solid fa-house"></i></div>
+        <div class="nav-item" onclick="changeTab('calendar',this)"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="nav-item" onclick="changeTab('shopping',this)"><i class="fa-solid fa-cart-shopping"></i></div>
+        <div class="nav-item" onclick="changeTab('family',this)"><i class="fa-solid fa-users"></i></div>
+    </nav>
+</div>
+<div class="chatbot-btn" onclick="toggleChat()"><i class="fa-solid fa-robot"></i></div>
+<div class="chat-window" id="chatWindow">
+    <div class="chat-head">🍒 AI 체리 <i class="fa-solid fa-times" style="cursor:pointer;" onclick="toggleChat()"></i></div>
+    <div class="chat-body" id="chatBody"><div class="chat-msg msg-bot">안녕하세요! 가족 AI <b>체리</b>입니다! 🍒<br>무엇이든 물어보세요!</div></div>
+    <div class="chat-input-area"><input type="text" id="chatInput" class="chat-inp" placeholder="메시지 입력..." onkeydown="if(event.key==='Enter')sendChat()"><button class="btn-pop" style="width:auto;padding:5px 15px;font-size:14px;" onclick="sendChat()">전송</button></div>
+</div>
+<div id="eventModal" class="modal-bg"><div class="modal-card">
+    <div class="modal-tit">📅 일정 기록</div>
+    <p id="modalDateDisplay" style="text-align:center;font-weight:bold;margin-bottom:20px;"></p>
+    <ul id="eventList" style="list-style:none;margin-bottom:20px;padding:0;"></ul>
+    <input type="text" id="eventTitle" class="input-retro" placeholder="일정 내용" onkeydown="if(event.key==='Enter')saveEvent()">
+    <div class="modal-btns"><button class="btn-pop gray" onclick="closeModal('eventModal')">닫기</button><button class="btn-pop" onclick="saveEvent()">저장</button></div>
+</div></div>
+<div id="familyModal" class="modal-bg"><div class="modal-card">
+    <div class="modal-tit">🍒 가족 추가</div>
+    <div style="text-align:center;margin-bottom:20px;"><label for="famImgInput" style="display:inline-block;cursor:pointer;"><div id="famImgPreview" style="width:100px;height:100px;border-radius:50%;background:var(--bg-cream);border:var(--border-thick);display:flex;align-items:center;justify-content:center;overflow:hidden;"><i class="fa-solid fa-camera" style="font-size:30px;color:var(--text-choco);"></i></div></label><input type="file" id="famImgInput" accept="image/*" style="display:none;" onchange="handleFamImgSelect(event)"></div>
+    <input type="text" id="famRole" class="input-retro" placeholder="역할 (예: 아빠)" style="margin-bottom:10px;">
+    <input type="text" id="famName" class="input-retro" placeholder="이름 (선택)" style="margin-bottom:10px;">
+    <input type="text" id="famDesc" class="input-retro" placeholder="한 마디 소개">
+    <div class="modal-btns"><button class="btn-pop gray" onclick="closeModal('familyModal')">취소</button><button id="btnSaveFam" class="btn-pop" onclick="saveFam()">추가</button></div>
+</div></div>
+
+<script>
+/* ═══ 🔑 API 키 5개 로테이션 ═══ */
+const KEYS=["AIzaSyDCJvEiVEYrCI5x7_YDOipEG5mUFZVKmkI","AIzaSyA8W6gw7yle9T1lypOIHZZazSFzlICtJDw","AIzaSyCp2RHsM2tbI3DU6Ltu2bIg2hIBIxRwDOE","AIzaSyBaSoznZD0eyt6-8KPeK0nCeKwZ9hVpgsY","AIzaSyDK2vSeGGU9b9Olie7nIY1gDvRc3DBjvoU"];
+let _ki=0; function nextKey(){const k=KEYS[_ki];_ki=(_ki+1)%KEYS.length;return k;}
+
+const firebaseConfig={apiKey:"AIzaSyCokmBJyH6xGaB42u_ScP6k7ghEVxTZSio",authDomain:"our-family-home.firebaseapp.com",projectId:"our-family-home",storageBucket:"our-family-home.firebasestorage.app",messagingSenderId:"446464856858",appId:"1:446464856858:web:344f2c83aeda0ea9ae52a3"};
+firebase.initializeApp(firebaseConfig);const db=firebase.firestore();
+
+function compressImage(f,mW,cb){const r=new FileReader();r.onload=e=>{const i=new Image();i.onload=()=>{const c=document.createElement('canvas');let w=i.width,h=i.height;if(w>mW){h*=mW/w;w=mW;}c.width=w;c.height=h;c.getContext('2d').drawImage(i,0,0,w,h);cb(c.toDataURL('image/jpeg',0.5));};i.src=e.target.result;};r.readAsDataURL(f);}
+
+/* ═══ 🧠 Fallback AI ═══ */
+const recipes={"떡볶이":["떡","어묵","대파","고추장","설탕","물"],"김치찌개":["김치","돼지고기","두부","대파","고춧가루"],"된장찌개":["된장","호박","두부","양파","청양고추"],"미역국":["미역","소고기","참기름","국간장","다진마늘"],"카레":["카레가루","감자","당근","양파","식용유"],"라면":["라면","계란","파","떡(선택)"],"비빔밥":["콩나물","시금치","고추장","계란","참기름","당근"],"불고기":["소고기","양파","배","간장","설탕","참기름","마늘"],"잡채":["당면","시금치","당근","양파","버섯","간장","참기름"],"계란말이":["계란","파","당근","소금","식용유"],"김밥":["밥","김","단무지","당근","시금치","계란","햄"],"파스타":["파스타면","올리브오일","마늘","양파","토마토소스"],"볶음밥":["밥","계란","파","당근","간장","참기름"],"닭볶음탕":["닭","감자","당근","양파","고추장","간장","고춧가루"],"샌드위치":["식빵","양상추","토마토","치즈","햄","마요네즈"],"제육볶음":["돼지고기","양파","파","고추장","고춧가루","간장"],"오므라이스":["밥","계란","양파","당근","케첩","버터"],"콩나물국":["콩나물","파","마늘","국간장","소금"],"순두부찌개":["순두부","고춧가루","계란","파","새우젓"],"감자전":["감자","부침가루","식용유","소금"]};
+const mealTips={아침:["토스트 & 계란프라이 ☀️","죽 한 그릇! 🥣","시리얼! 🥛","샌드위치 🥪","바나나 스무디! 🍌"],점심:["비빔밥! 🍚","칼국수! 🍜","김치볶음밥! 🍳","돈까스! 🐷","냉면! 🧊"],저녁:["삼겹살! 🥩","찌개! 🍲","치킨! 🍗","파스타! 🍝","초밥! 🍣"],야식:["라면! 🍜","치킨! 🍗","떡볶이! 🌶️","피자! 🍕","족발! 🐷"],간식:["과일! 🍎","떡! 🍡","쿠키! 🍪","아이스크림! 🍦","고구마! 🍠"]};
+const chat={hi:["안녕! 오늘도 화이팅! 💪","반가워~ 🍒","기분 어때? 😊"],thx:["별말씀을! 😊","도움 됐다니! 🍒","언제든~ ✨"],mood:["나는 항상 좋지! 🍒","에너지 100%! ⚡","열심히 중~ 💪"],bored:["보드게임! 🎲","같이 요리! 👨‍🍳","산책! 📸","넷플릭스! 🎬"],love:["사랑해~ ❤️","가족 화이팅! 💕","사랑 넘쳐! 🥰"],gn:["잘 자~ 🌙","수고했어! ⭐","좋은 하루! 💤"],gm:["좋은 아침! ☀️","아침 뭐 먹을까? 🍳","굿모닝~ 🌅"],tired:["좀 쉬어~ 💆","따뜻한 차? ☕","일찍 자! 😴"],hungry:["뭐 먹고 싶어? 🤔","간식부터! 🍪","장보기에 추가? 🛒"]};
+const facts=["🍒 토마토는 과일!","🍒 꿀은 절대 안 상해!","🍒 바나나는 베리류!","🍒 당근은 원래 보라색!","🍒 초콜릿이 옛날엔 화폐!","🍒 수박은 92%가 물!","🍒 사과는 장미과!","🍒 딸기 겉 씨가 진짜 열매!"];
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function fallbackAI(text){
+    const t=text.toLowerCase().trim();let reply=null,action=null;
+    for(const food in recipes){if(t.includes(food)){if(t.match(/재료|장보기|추가|담아|만들|사야/)){action={action:"add_shopping_multi",items:recipes[food]};reply=`👨‍🍳 <b>${food}</b> 재료 장보기에 담았어!\n🛒 ${recipes[food].join(", ")}`;}else{reply=`<b>${food}</b> 재료: ${recipes[food].join(", ")}\n\n장보기에 담을까? "${food} 재료 추가"라고 해봐!`;}break;}}
+    if(!reply&&!action&&t.match(/장보기|담아|사야/)){const item=t.replace(/장보기|추가|해줘|담아줘|담아|에|사야|좀|할|리스트/g,"").trim();if(item){action={action:"add_shopping",item};reply=`🛒 <b>${item}</b> 추가!`;}}
+    if(!reply&&t.includes("일정")){const td=new Date();let date=td.toISOString().split('T')[0];if(t.includes("내일")){td.setDate(td.getDate()+1);date=td.toISOString().split('T')[0];}if(t.includes("모레")){td.setDate(td.getDate()+2);date=td.toISOString().split('T')[0];}const title=t.replace(/일정|추가|해줘|내일|오늘|모레|등록|에/g,"").trim();if(title){action={action:"add_event",date,title};reply=`📅 <b>${date}</b>에 <b>${title}</b> 등록!`;}}
+    if(!reply){const h=new Date().getHours();if(t.match(/뭐 먹|뭐먹|메뉴|추천|배고/)){let m="점심";if(h<10)m="아침";else if(h<14)m="점심";else if(h<18)m="간식";else if(h<21)m="저녁";else m="야식";if(t.includes("아침"))m="아침";if(t.includes("점심"))m="점심";if(t.includes("저녁"))m="저녁";if(t.includes("야식"))m="야식";if(t.includes("간식"))m="간식";reply=`${pick(mealTips[m])}\n\n레시피 필요하면 음식 이름 말해봐!`;}}
+    if(!reply){if(t.match(/안녕|하이|헬로|hi|hello/))reply=pick(chat.hi);else if(t.match(/고마|감사|ㄱㅅ|땡큐/))reply=pick(chat.thx);else if(t.match(/어때|기분|잘 지내/))reply=pick(chat.mood);else if(t.match(/심심|지루/))reply=pick(chat.bored);else if(t.match(/사랑|좋아/))reply=pick(chat.love);else if(t.match(/잘 자|굿나잇/))reply=pick(chat.gn);else if(t.match(/좋은 아침|굿모닝/))reply=pick(chat.gm);else if(t.match(/피곤|힘들|지쳤/))reply=pick(chat.tired);else if(t.match(/배고|hungry|밥/))reply=pick(chat.hungry);else if(t.match(/도움|도와|기능/))reply="할 수 있는 것들! 👇\n\n🍳 \"떡볶이 재료 추가\"\n📅 \"내일 병원 일정 추가\"\n🛒 \"우유 장보기 추가\"\n🍽️ \"저녁 뭐 먹지?\"";}
+    if(!reply)reply=pick(["음~ 잘 모르겠어! 🤔 '도움말' 쳐봐!",`대신! ${pick(facts)}`,`그건 어렵다~ 😅 요리나 일정 물어봐!`,`모르겠어! 🙈 ${pick(facts)}`]);
+    return{text:reply,action};
+}
+
+/* ═══ 💾 캐싱 ═══ */
+function cacheKey(t){return t.toLowerCase().replace(/[^가-힣a-z0-9]/g,'').substring(0,50);}
+async function getCache(t){const k=cacheKey(t);if(!k)return null;try{const s=await db.collection("ai_cache").doc(k).get();if(s.exists){const d=s.data();if(Date.now()-(d.timestamp?.toMillis?.()||0)<86400000)return d.response;}}catch(e){}return null;}
+async function setCache(t,r){const k=cacheKey(t);if(!k||k.length<3)return;try{await db.collection("ai_cache").doc(k).set({query:t,response:r,timestamp:firebase.firestore.FieldValue.serverTimestamp()});}catch(e){}}
+
+/* ═══ 🤖 AI 채팅 ═══ */
+const MODELS=["gemini-2.5-flash","gemini-2.0-flash","gemini-1.5-flash"];
+async function sendChat(){
+    const input=document.getElementById('chatInput'),text=input.value.trim();if(!text)return;
+    appendMsg(text,'user');input.value='';const lid=appendLoading();
+    const cached=await getCache(text);
+    if(cached){document.getElementById(lid).remove();appendMsg(cached+' <span class="cache-badge">⚡캐시</span>','bot');handleActions(cached);return;}
+    const sys=`너는 '체리'라는 가족 AI 비서야. 친근한 반말, 이모지 사용. [기능] 1.일정:{"action":"add_event","date":"YYYY-MM-DD","title":"내용"}(오늘:${new Date().toISOString().split('T')[0]}) 2.장보기:{"action":"add_shopping","item":"물건"} 3.여러개:{"action":"add_shopping_multi","items":["a","b"]} 4.그외:텍스트. 재료 추가 시 실제 재료명을 items에!`;
+    let aiText="",ok=false;
+    for(const model of MODELS){for(let k=0;k<KEYS.length;k++){const key=nextKey();try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:"user",parts:[{text:sys+"\nUser: "+text}]}]})});if(r.status===429)continue;if(!r.ok)throw new Error(r.status);const d=await r.json();aiText=d.candidates[0].content.parts[0].text;ok=true;break;}catch(e){}}if(ok)break;}
+    document.getElementById(lid).remove();
+    if(!ok){const fb=fallbackAI(text);aiText=fb.text;if(fb.action)execAction(fb.action);appendMsg(aiText,'bot');return;}
+    setCache(text,aiText);handleActions(aiText);appendMsg(aiText,'bot');
+}
+function handleActions(t){if(!t.includes('{"action"'))return;try{const m=t.match(/\{"action":[^}]*\]/)||t.match(/\{"action":[^}]*\}/);if(m)execAction(JSON.parse(m[0]));}catch(e){}}
+function execAction(c){if(c.action==='add_event')db.collection("family_events").add({date:c.date,title:c.title,timestamp:firebase.firestore.FieldValue.serverTimestamp()});else if(c.action==='add_shopping')db.collection("family_shopping").add({text:c.item,checked:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()});else if(c.action==='add_shopping_multi')c.items.forEach(i=>db.collection("family_shopping").add({text:i,checked:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()}));}
+function appendMsg(t,s){const b=document.getElementById('chatBody');b.innerHTML+=`<div class="chat-msg msg-${s}">${marked.parse(t)}</div>`;b.scrollTop=b.scrollHeight;}
+function appendLoading(){const id='l'+Date.now();document.getElementById('chatBody').innerHTML+=`<div class="chat-msg msg-bot typing-indicator" id="${id}"><span></span><span></span><span></span></div>`;return id;}
+function toggleChat(){const w=document.getElementById('chatWindow');w.style.display=w.style.display==='flex'?'none':'flex';}
+
+/* ═══ 👨‍👩‍👧‍👦 가족 ═══ */
+let familyData=[],selectedRole="",familyLoaded=false,pendingPosts=null;
+function loadFamily(){
+    db.collection("family_members").orderBy("timestamp").onSnapshot(snap=>{
+        familyData=[];const con=document.getElementById('family-container'),chips=document.getElementById('writerChips');
+        con.innerHTML="";chips.innerHTML="";
+        if(snap.empty)chips.innerHTML=`<div style="padding:10px;font-size:14px;color:#aaa;">가족을 먼저 등록해주세요!</div>`;
+        snap.forEach(doc=>{const d=doc.data();familyData.push({id:doc.id,...d});
+            const img=d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:30px;"></i>`;
+            con.innerHTML+=`<div class="mem-card"><button onclick="delFamily('${doc.id}')" style="position:absolute;top:10px;right:10px;border:none;background:none;color:#999;cursor:pointer;"><i class="fa-solid fa-times"></i></button><div class="mem-pic">${img}</div><div class="mem-role">${d.role}</div><div class="mem-desc">${d.desc||'Yummy!'}</div></div>`;
+            const chk=selectedRole===d.role?'checked':'';
+            chips.innerHTML+=`<input type="radio" name="auth" id="c-${doc.id}" class="radio-hidden" value="${d.role}" onchange="selAuth(this)" ${chk}><label for="c-${doc.id}" class="writer-tag"><div style="width:24px;height:24px;border-radius:50%;overflow:hidden;background:#eee;border:1px solid #444;display:flex;align-items:center;justify-content:center;">${d.imageUrl?`<img src="${d.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:12px;"></i>`}</div> ${d.role}</label>`;
+        });
+        con.innerHTML+=`<div class="mem-card add-card" onclick="openFamModal()"><i class="fa-solid fa-plus-circle" style="font-size:40px;"></i><span style="font-family:'Jua';font-size:18px;">가족 추가</span></div>`;
+        updateHeaderProf();updateCommentAvatars();
+        familyLoaded=true;
+        if(pendingPosts){renderFeed(pendingPosts);pendingPosts=null;}
+    });
+}
+function selAuth(rd){selectedRole=rd.value;updateHeaderProf();updateCommentAvatars();}
+function updateHeaderProf(){const hp=document.getElementById('headerProfile');if(!selectedRole){hp.innerHTML=`<i class="fa-solid fa-user"></i>`;return;}const m=familyData.find(x=>x.role===selectedRole);hp.innerHTML=m&&m.imageUrl?`<img src="${m.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user"></i>`;}
+function updateCommentAvatars(){const h=getMyAvatarHtml();document.querySelectorAll('.cmt-my-avatar').forEach(el=>{el.innerHTML=h;});}
+function getMemberImg(role){const m=familyData.find(x=>x.role===role);return m&&m.imageUrl?`<img src="${m.imageUrl}" style="width:100%;height:100%;object-fit:cover;">`:`<i class="fa-solid fa-user" style="font-size:14px;color:#bbb;"></i>`;}
+function getMyAvatarHtml(){return selectedRole?getMemberImg(selectedRole):`<i class="fa-solid fa-user" style="font-size:12px;color:#bbb;"></i>`;}
+
+/* ═══ 📰 피드 ═══ */
+let feedImg=null;
+function handleImageSelect(e){if(e.target.files[0])compressImage(e.target.files[0],500,d=>{feedImg=d;document.getElementById('imagePreview').src=d;document.getElementById('imagePreviewBox').style.display='block';});}
+function clearImage(){feedImg=null;document.getElementById('imageInput').value='';document.getElementById('imagePreviewBox').style.display='none';}
+function addPost(){
+    if(!selectedRole)return alert("가족을 선택해주세요!");
+    const txt=document.getElementById('postContent').value,btn=document.getElementById('btnPost');
+    if(!txt&&!feedImg)return alert("내용을 입력해주세요!");
+    const mem=familyData.find(m=>m.role===selectedRole);btn.disabled=true;btn.innerText="저장 중...";
+    db.collection("family_posts").add({author:selectedRole,authorImg:mem?mem.imageUrl:null,content:txt,imageUrl:feedImg,likedBy:[],likedByData:[],comments:[],timestamp:firebase.firestore.FieldValue.serverTimestamp()})
+    .then(()=>{document.getElementById('postContent').value='';clearImage();btn.disabled=false;btn.innerText="업로드!";window.scrollTo(0,0);})
+    .catch(()=>{alert("실패!");btn.disabled=false;btn.innerText="업로드!";});
+}
+
+/* ★ 핵심 수정: 좋아요 시 role + imageUrl을 함께 저장 */
+function likePost(id, likedByDataArr) {
+    if(!selectedRole) return alert("프로필을 선택해주세요!");
+    const likedByData = likedByDataArr || [];
+    const already = likedByData.find(x => x.role === selectedRole);
+    const mem = familyData.find(m => m.role === selectedRole);
+    const myImg = mem ? mem.imageUrl || null : null;
+    
+    if(already) {
+        // 좋아요 취소: likedBy와 likedByData 모두에서 제거
+        db.collection("family_posts").doc(id).update({
+            likedBy: firebase.firestore.FieldValue.arrayRemove(selectedRole),
+            likedByData: firebase.firestore.FieldValue.arrayRemove(already)
+        });
+    } else {
+        // 좋아요 추가: likedBy에 role, likedByData에 {role, img} 저장
+        db.collection("family_posts").doc(id).update({
+            likedBy: firebase.firestore.FieldValue.arrayUnion(selectedRole),
+            likedByData: firebase.firestore.FieldValue.arrayUnion({ role: selectedRole, img: myImg })
+        });
+        const b=document.querySelector(`[data-like-id="${id}"]`);
+        if(b){b.classList.add('heart-pop');setTimeout(()=>b.classList.remove('heart-pop'),400);}
+    }
+}
+
+function renderFeed(posts){
+    const con=document.getElementById('feed-container');con.innerHTML="";
+    if(!posts.length){con.innerHTML=`<div style="text-align:center;padding:40px;color:#aaa;">첫 글을 남겨보세요! 🍒</div>`;return;}
+    posts.forEach(d=>{
+        let authorImgUrl=d.authorImg;
+        if(!authorImgUrl){const mem=familyData.find(m=>m.role===d.author);if(mem)authorImgUrl=mem.imageUrl;}
+        const pImg=authorImgUrl?`<div class="fp-img"><img src="${authorImgUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`:`<div class="fp-img"><i class="fa-solid fa-user"></i></div>`;
+        const iHtml=d.imageUrl?`<div class="feed-photo"><img src="${d.imageUrl}"></div>`:'';
+        const likedBy=d.likedBy||[];
+        const likedByData=d.likedByData||[];
+        const lc=likedBy.length;
+        const iL=selectedRole&&likedBy.includes(selectedRole);
+
+        /* ★ 핵심: likedByData에서 이미지 URL 직접 사용 (familyData 의존 제거) */
+        let lpH='';
+        if(lc>0){
+            lpH='<div class="like-profiles">';
+            likedByData.slice(0,8).forEach(ld=>{
+                if(ld.img){
+                    lpH+=`<div class="like-avatar"><img src="${ld.img}"></div>`;
+                } else {
+                    // img 없는 경우 familyData에서 찾기 (하위 호환)
+                    const mem=familyData.find(m=>m.role===ld.role);
+                    if(mem&&mem.imageUrl) lpH+=`<div class="like-avatar"><img src="${mem.imageUrl}"></div>`;
+                    else lpH+=`<div class="like-avatar"><i class="fa-solid fa-user" style="font-size:10px;color:#bbb;"></i></div>`;
+                }
+            });
+            // likedByData가 비어있는 옛 게시물 호환
+            if(likedByData.length===0){
+                likedBy.slice(0,8).forEach(role=>{
+                    const mem=familyData.find(m=>m.role===role);
+                    if(mem&&mem.imageUrl) lpH+=`<div class="like-avatar"><img src="${mem.imageUrl}"></div>`;
+                    else lpH+=`<div class="like-avatar"><i class="fa-solid fa-user" style="font-size:10px;color:#bbb;"></i></div>`;
+                });
+            }
+            lpH+=`<span class="like-text"><b>${likedBy.join(', ')}</b>님이 좋아합니다</span></div>`;
+        }
+
+        let cmH='';
+        if(d.comments&&d.comments.length>0)d.comments.forEach((c,i)=>{
+            // 댓글 아바타도 familyData + authorImg 둘 다 체크
+            let cmtImgHtml=getMemberImg(c.author);
+            cmH+=`<div class="cmt-single"><div class="cmt-avatar">${cmtImgHtml}</div><div class="cmt-body"><span class="cmt-author">${c.author}</span><span class="cmt-text">${c.text}</span></div><button class="cmt-del" onclick="delComment('${d.id}',${i})"><i class="fa-solid fa-times"></i></button></div>`;
+        });
+        const ts=d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleDateString('ko-KR',{month:'long',day:'numeric'}):'방금';
+        
+        // ★ likedByData를 onclick에 전달 (JSON escape)
+        const likedByDataSafe = JSON.stringify(likedByData).replace(/"/g,'&quot;');
+
+        con.innerHTML+=`<div class="retro-card" style="padding-bottom:0;overflow:hidden;">
+            <div class="feed-head"><div class="feed-profile">${pImg}<div><h4 style="font-size:15px;">${d.author}</h4><span style="font-size:12px;color:#999;">${ts}</span></div></div><button onclick="delPost('${d.id}')" style="border:none;background:none;color:#bbb;cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:14px;"></i></button></div>
+            <div style="margin-bottom:12px;font-size:15px;line-height:1.6;">${d.content}</div>${iHtml}
+            <div style="display:flex;gap:12px;padding:8px 0;">
+                <button class="act-btn ${iL?'liked':''}" data-like-id="${d.id}" onclick='likePost("${d.id}",${JSON.stringify(likedByData)})'><i class="${iL?'fa-solid fa-heart':'fa-regular fa-heart'}" style="font-size:18px;"></i> ${lc||''}</button>
+                <button class="act-btn" onclick="toggleCmt('${d.id}')"><i class="fa-regular fa-comment" style="font-size:18px;"></i> ${d.comments?d.comments.length:''}</button>
+            </div>
+            ${lpH}
+            ${lc===0?'<div class="feed-bottom-pad"></div>':''}
+            <div id="cmt-${d.id}" class="cmt-area">
+                <div class="cmt-list">${cmH||'<div style="text-align:center;padding:20px;color:#ccc;font-size:13px;">아직 댓글이 없어요</div>'}</div>
+                <div class="cmt-input-bar"><div class="cmt-my-avatar">${getMyAvatarHtml()}</div><input type="text" id="cInp-${d.id}" placeholder="댓글 달기..." onkeydown="if(event.key==='Enter')addCmt('${d.id}')"><button class="cmt-send-btn" onclick="addCmt('${d.id}')">게시</button></div>
+            </div></div>`;
+    });
+}
+
+function loadFeed(){
+    db.collection("family_posts").limit(20).onSnapshot(snap=>{
+        let posts=[];
+        snap.forEach(d=>{const data=d.data();if(!data.likedBy)data.likedBy=[];if(!data.likedByData)data.likedByData=[];posts.push({id:d.id,...data});});
+        posts.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+        if(!familyLoaded){pendingPosts=posts;return;}
+        renderFeed(posts);
+    });
+}
+
+function delPost(id){if(confirm("삭제할까요?"))db.collection("family_posts").doc(id).delete();}
+function toggleCmt(id){document.getElementById(`cmt-${id}`).classList.toggle('show');}
+function addCmt(id){if(!selectedRole)return alert("프로필을 선택해주세요!");const t=document.getElementById(`cInp-${id}`).value.trim();if(!t)return;db.collection("family_posts").doc(id).update({comments:firebase.firestore.FieldValue.arrayUnion({author:selectedRole,text:t,time:Date.now()})});document.getElementById(`cInp-${id}`).value='';}
+function delComment(pid,idx){if(!confirm("삭제?"))return;db.collection("family_posts").doc(pid).get().then(doc=>{if(doc.exists){const c=doc.data().comments||[];c.splice(idx,1);db.collection("family_posts").doc(pid).update({comments:c});}});}
+
+/* 캘린더 */
+let curDate=new Date(),events=[],curModDate=null;
+function loadCal(){const y=curDate.getFullYear(),m=curDate.getMonth();document.getElementById('month-display').innerText=`${m+1}월`;const f=new Date(y,m,1),l=new Date(y,m+1,0),con=document.getElementById('calendar-days');con.innerHTML="";for(let i=0;i<f.getDay();i++)con.innerHTML+=`<div></div>`;for(let i=1;i<=l.getDate();i++){const dS=`${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`,hE=events.filter(e=>e.date===dS).length?`<div class="ev-badge"></div>`:'',td=new Date().toDateString()===new Date(y,m,i).toDateString()?'today':'';con.innerHTML+=`<div class="date-box ${td}" onclick="openEvModal('${dS}')"><span>${i}</span>${hE}</div>`;}}
+function moveMonth(n){curDate.setMonth(curDate.getMonth()+n);loadCal();}
+function openEvModal(d){curModDate=d;document.getElementById('modalDateDisplay').innerText=d;renderEvList();document.getElementById('eventModal').style.display='flex';}
+function renderEvList(){const el=document.getElementById('eventList'),evs=events.filter(e=>e.date===curModDate);el.innerHTML=evs.length?"":"<li style='text-align:center;color:#999;'>일정 없음</li>";evs.forEach(e=>el.innerHTML+=`<li style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dashed #ccc;"><span>${e.title}</span><i class="fa-solid fa-times" style="color:red;cursor:pointer;" onclick="delEv('${e.id}')"></i></li>`);}
+function saveEvent(){const t=document.getElementById('eventTitle').value;if(curModDate&&t)db.collection("family_events").add({date:curModDate,title:t,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{document.getElementById('eventTitle').value='';closeModal('eventModal');});}
+function delEv(id){if(confirm("삭제?"))db.collection("family_events").doc(id).delete();}
+db.collection("family_events").onSnapshot(s=>{events=[];s.forEach(d=>events.push({id:d.id,...d.data()}));loadCal();if(curModDate)renderEvList();});
+
+let famImg=null;
+function closeModal(id){document.getElementById(id).style.display='none';famImg=null;curModDate=null;}
+function openFamModal(){document.getElementById('familyModal').style.display='flex';}
+function handleFamImgSelect(e){if(e.target.files[0])compressImage(e.target.files[0],500,d=>{famImg=d;document.getElementById('famImgPreview').innerHTML=`<img src="${d}" style="width:100%;height:100%;object-fit:cover;">`;});}
+function saveFam(){const r=document.getElementById('famRole').value,n=document.getElementById('famName').value,d=document.getElementById('famDesc').value;if(!r)return alert("역할 입력!");const btn=document.getElementById('btnSaveFam');btn.disabled=true;btn.innerText="저장 중...";db.collection("family_members").add({role:r,name:n,desc:d,imageUrl:famImg,timestamp:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>{closeModal('familyModal');btn.disabled=false;btn.innerText="추가";document.getElementById('famRole').value='';document.getElementById('famName').value='';document.getElementById('famDesc').value='';document.getElementById('famImgInput').value='';document.getElementById('famImgPreview').innerHTML=`<i class="fa-solid fa-camera" style="font-size:30px;color:var(--text-choco);"></i>`;}).catch(()=>{alert("오류!");btn.disabled=false;btn.innerText="추가";});}
+function delFamily(id){if(confirm("삭제?"))db.collection("family_members").doc(id).delete();}
+function loadShopping(){db.collection("family_shopping").orderBy("timestamp","desc").onSnapshot(snap=>{const list=document.getElementById('shopList');list.innerHTML="";snap.forEach(doc=>{const d=doc.data();list.innerHTML+=`<div class="shop-item"><div style="display:flex;align-items:center;"><div class="shop-check ${d.checked?'on':''}" onclick="toggleShop('${doc.id}',${!d.checked})"><i class="fa-solid fa-check" style="color:white;font-size:12px;"></i></div><span style="${d.checked?'text-decoration:line-through;color:#aaa;':''}">${d.text}</span></div><i class="fa-solid fa-times shop-del" onclick="delShop('${doc.id}')"></i></div>`;});});}
+function addShopItem(){const inp=document.getElementById('shopInput');if(inp.value.trim()){db.collection("family_shopping").add({text:inp.value,checked:false,timestamp:firebase.firestore.FieldValue.serverTimestamp()});inp.value='';}}
+function toggleShop(id,s){db.collection("family_shopping").doc(id).update({checked:s});}
+function delShop(id){if(confirm("삭제?"))db.collection("family_shopping").doc(id).delete();}
+window.changeTab=function(id,el){document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));if(el)el.classList.add('active');window.scrollTo(0,0);}
+loadFamily();loadFeed();loadCal();loadShopping();
+</script>
+</body>
+</html>
